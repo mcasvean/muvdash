@@ -1,0 +1,51 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Implement stories one at a time in the sequence recorded in planning-artifacts/epics.md; do not run story implementation in parallel
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 10-19-2026 13:43
+last_updated: 10-19-2026 13:44
+project: bmad
+project_key: NOKEY
+tracking_system: file-system
+story_location: bmad/_bmad-output/implementation-artifacts
+development_status:
+  epic-1: backlog
+  1-1-browse-the-film-catalog: backlog
+  1-2-recover-from-an-unavailable-catalog: backlog
+  1-3-navigate-the-app: backlog
+  1-4-search-the-catalog: backlog
+  1-5-switch-card-image-orientation: backlog
+  1-6-choose-and-remember-a-theme: backlog
+  1-7-get-contextual-help-for-icon-controls: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-open-and-read-film-details: backlog
+  2-2-show-resolved-related-film-information: backlog
+  epic-2-retrospective: optional

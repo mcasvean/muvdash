@@ -15,7 +15,7 @@ inputDocuments:
   - _bmad-output/api_structure.md
 ---
 
-# Muvdash - Epic Breakdown
+# Muvdash Delivery Plan
 
 ## Overview
 
@@ -96,7 +96,7 @@ UX-DR11: All stories - Each story's acceptance criteria verify keyboard/touch ac
 UX-DR12: Stories 1.2, 1.3, 1.4, and 2.2 - Provide clear, supportive empty/error and informational copy.
 UX-DR13: Story 1.7 - Implement and review contextual guidance targets and interactions.
 
-## Epic List
+## Outcome Groups
 
 ### Epic 1: Browse and Find Ghibli Films
 
