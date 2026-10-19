@@ -29,20 +29,21 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 13:43
-last_updated: 10-19-2026 13:44
+last_updated: 10-19-2026 14:39
 project: bmad
 project_key: NOKEY
 tracking_system: file-system
 story_location: bmad/_bmad-output/implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-browse-the-film-catalog: backlog
-  1-2-recover-from-an-unavailable-catalog: backlog
-  1-3-navigate-the-app: backlog
-  1-4-search-the-catalog: backlog
-  1-5-switch-card-image-orientation: backlog
-  1-6-choose-and-remember-a-theme: backlog
-  1-7-get-contextual-help-for-icon-controls: backlog
+  epic-1: in-progress
+  1-1-scaffold-the-frontend-application: review
+  1-2-browse-the-film-catalog: backlog
+  1-3-recover-from-an-unavailable-catalog: backlog
+  1-4-navigate-the-app: backlog
+  1-5-search-the-catalog: backlog
+  1-6-switch-card-image-orientation: backlog
+  1-7-choose-and-remember-a-theme: backlog
+  1-8-get-contextual-help-for-icon-controls: backlog
   epic-1-retrospective: optional
 
   epic-2: backlog

@@ -1,0 +1,15 @@
+@import './base.css';
+
+#app {
+  min-height: 100vh;
+}
+
+body {
+  min-width: 320px;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+button,
+a {
+  font: inherit;
+}

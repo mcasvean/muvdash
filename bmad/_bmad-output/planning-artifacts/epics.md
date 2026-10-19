@@ -50,7 +50,7 @@ This document organizes requirements from the Muvdash PRD, UX contract, architec
 - Isolate API access in a service or composable layer. Keep state limited to catalog/loading/error, selected film, search/view/modal/navigation UI, and theme preference.
 - Persist the selected theme in localStorage; use dark mode by default when no saved preference exists.
 - Preserve the architecture's focused test coverage for catalog loading/error states, search, details, theme persistence, and route navigation.
-- FR-9's target elements were not specified in the UX contract. Story 1.7 proposes guidance for the icon-only mobile menu and card-view control, using the tooltip interaction rules recorded in the UX memlog; review this scope before implementation.
+- FR-9's target elements were not specified in the UX contract. Story 1.8 proposes guidance for the icon-only mobile menu and card-view control, using the tooltip interaction rules recorded in the UX memlog; confirm this scope before implementation.
 
 ### UX Design Requirements
 
@@ -78,29 +78,29 @@ FR5: Epic 1 - Show a distinct no-results state.
 FR6: Epic 2 - View a selected film's details and resolved related data.
 FR7: Epic 2 - Show the specified error modal when related data fails.
 FR8: Epic 1 - Navigate to the Contact and About routes.
-FR9: Epic 1 - Provide contextual guidance for the mobile menu and card-view control as proposed in Story 1.7.
+FR9: Epic 1 - Provide contextual guidance for the mobile menu and card-view control as proposed in Story 1.8.
 
 ### UX-DR Coverage Map
 
-UX-DR1: Stories 1.1 and 1.6 - Implement approved theme tokens and contrast.
-UX-DR2: Stories 1.1, 1.2, 1.3, and 2.1 - Apply the visual direction to the app shell, cards, unavailable state, and modal.
-UX-DR3: Stories 1.3 and 1.4 - Keep the header and compacting search sticky without overlap.
-UX-DR4: Story 1.3 - Implement logo, routes, responsive navigation, and mobile dismissal behavior.
-UX-DR5: Stories 1.1 and 1.5 - Implement responsive, consistent card sizing and image cropping in both card modes.
-UX-DR6: Story 1.5 - Implement portrait/landscape view selection and state icon.
-UX-DR7: Stories 1.1 and 1.5 - Preserve card fields, hierarchy, and description truncation in both modes.
+UX-DR1: Stories 1.2 and 1.7 - Implement approved theme tokens and contrast.
+UX-DR2: Stories 1.2, 1.3, 1.4, and 2.1 - Apply the visual direction to the app shell, cards, unavailable state, and modal.
+UX-DR3: Stories 1.4 and 1.5 - Keep the header and compacting search sticky without overlap.
+UX-DR4: Story 1.4 - Implement logo, routes, responsive navigation, and mobile dismissal behavior.
+UX-DR5: Stories 1.2 and 1.6 - Implement responsive, consistent card sizing and image cropping in both card modes.
+UX-DR6: Story 1.6 - Implement portrait/landscape view selection and state icon.
+UX-DR7: Stories 1.2 and 1.6 - Preserve card fields, hierarchy, and description truncation in both modes.
 UX-DR8: Stories 2.1 and 2.2 - Implement the modal layout and resolved related fields.
-UX-DR9: Story 1.6 - Implement accessible theme selection and persistence.
-UX-DR10: Stories 1.1-1.7 and 2.1-2.2 - Apply subtle motion and reduced-motion behavior to loading and interactive transitions.
+UX-DR9: Story 1.7 - Implement accessible theme selection and persistence.
+UX-DR10: Stories 1.2-1.8 and 2.1-2.2 - Apply subtle motion and reduced-motion behavior to loading and interactive transitions.
 UX-DR11: All stories - Each story's acceptance criteria verify keyboard/touch access, visible focus, comfortable targets, and non-color cues for its interactive controls.
-UX-DR12: Stories 1.2, 1.3, 1.4, and 2.2 - Provide clear, supportive empty/error and informational copy.
-UX-DR13: Story 1.7 - Implement and review contextual guidance targets and interactions.
+UX-DR12: Stories 1.3, 1.4, 1.5, and 2.2 - Provide clear, supportive empty/error and informational copy.
+UX-DR13: Story 1.8 - Implement and review contextual guidance targets and interactions.
 
 ## Outcome Groups
 
 ### Epic 1: Browse and Find Ghibli Films
 
-Visitors can open Muvdash, browse the responsive film catalog, search by film information, recover from loading and empty states, switch card presentation, and navigate the informational routes. This epic delivers a useful catalog experience independently. Shared shell, theme, accessibility, responsive behavior, and visual design are included where needed to complete that experience.
+Visitors can use a runnable Muvdash frontend to browse the responsive film catalog, search by film information, recover from loading and empty states, switch card presentation, and navigate the informational routes. This epic delivers a useful catalog experience independently. Shared shell, theme, accessibility, responsive behavior, and visual design are included where needed to complete that experience.
 
 **FRs covered:** Catalog portions of FR1-FR5, FR8, and FR9. FR2's detail-opening behavior is completed in Epic 2.
 
@@ -112,9 +112,45 @@ Visitors can open a selected film to inspect its available information and resol
 
 ## Epic 1: Browse and Find Ghibli Films
 
-Visitors can open Muvdash, browse and search the responsive Studio Ghibli catalog, recover from empty and error states, change card presentation, and navigate the informational routes.
+Visitors can use a runnable Muvdash frontend to browse and search the responsive Studio Ghibli catalog, recover from empty and error states, change card presentation, and navigate the informational routes.
 
-### Story 1.1: Browse the Film Catalog
+### Story 1.1: Scaffold the Frontend Application
+
+As the project owner,
+I want a runnable frontend application configured with the approved client stack,
+So that feature stories can be implemented on a consistent foundation.
+
+**Acceptance Criteria:**
+
+**Given** the repository contains BMAD planning files but no frontend application,
+**When** the story is complete,
+**Then** a Vue 3, Vite, and TypeScript application exists at the repository root,
+**And** existing BMAD files and the repository license are preserved.
+
+**Given** the frontend application is scaffolded,
+**When** its dependencies and entry point are configured,
+**Then** Pinia, Vue Router, and Vuetify are installed and registered,
+**And** the application remains client-only with no backend service.
+
+**Given** a developer installs the frontend dependencies,
+**When** they run the documented development command,
+**Then** the application starts locally and renders a minimal MuvDash application shell.
+
+**Given** the frontend scaffold is complete,
+**When** the production build command runs,
+**Then** Vite produces a successful production bundle.
+
+**Given** the frontend scaffold is complete,
+**When** the test command runs,
+**Then** a focused smoke test verifies the application mounts successfully.
+
+**Implementation order:** 1 overall; first story in Epic 1.
+**Technical dependencies:** None.
+**Implementation constraints:** Create the app at the Git repository root, alongside the existing `bmad/` planning directory; use Vue 3, Vite, TypeScript, Pinia, Vue Router, and Vuetify; add no backend.
+**Requirements:** Architecture technical stack; Additional Requirements (client-only application, no backend); architecture testing strategy.
+**Parallel implementation:** No. Implement stories one at a time as requested.
+
+### Story 1.2: Browse the Film Catalog
 
 As a visitor,
 I want to open Home and see the Studio Ghibli film catalog,
@@ -160,13 +196,13 @@ So that I can browse the available films.
 **When** focused automated tests run,
 **Then** they verify the initial request, loading state, and rendered card fields.
 
-**Implementation order:** 1 overall; first story in Epic 1.
-**Technical dependencies:** None.
-**Implementation constraints:** Use the client-only Vue 3, Vite, TypeScript, Pinia, Vue Router, and Vuetify stack; fetch the catalog from `https://ghibliapi.vercel.app/films`; isolate API access in a service or composable with minimal state; do not add a backend.
+**Implementation order:** 2 overall; second story in Epic 1.
+**Technical dependencies:** Story 1.1's frontend scaffold.
+**Implementation constraints:** Fetch the catalog from `https://ghibliapi.vercel.app/films`; isolate API access in a service or composable with minimal state.
 **Requirements:** FR1, FR2; NFR1, NFR2, NFR3; UX-DR1, UX-DR2, UX-DR5, UX-DR7, UX-DR10, UX-DR11.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.2: Recover from an Unavailable Catalog
+### Story 1.3: Recover from an Unavailable Catalog
 
 As a visitor,
 I want to retry when the catalog cannot be loaded,
@@ -214,12 +250,12 @@ So that I can still browse films if the service becomes available.
 **When** focused automated tests run,
 **Then** they verify failed and empty responses, retry, and successful recovery.
 
-**Implementation order:** 2 overall; second story in Epic 1.
-**Technical dependencies:** Story 1.1's catalog loading and rendering path.
+**Implementation order:** 3 overall; third story in Epic 1.
+**Technical dependencies:** Story 1.2's catalog loading and rendering path.
 **Requirements:** FR3, FR5; NFR2, NFR3; UX-DR2, UX-DR10, UX-DR11, UX-DR12.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.3: Navigate the App
+### Story 1.4: Navigate the App
 
 As a visitor,
 I want to move between Home, Contact, and About,
@@ -259,12 +295,12 @@ So that I can browse films and access the app's informational pages.
 **When** focused automated tests run,
 **Then** they verify Home, Contact, and About navigation and mobile menu dismissal.
 
-**Implementation order:** 3 overall; third story in Epic 1.
-**Technical dependencies:** Story 1.1's app shell and Home route.
+**Implementation order:** 4 overall; fourth story in Epic 1.
+**Technical dependencies:** Stories 1.1 and 1.2 for the app shell and Home route.
 **Requirements:** FR8; NFR2, NFR3; UX-DR2, UX-DR3, UX-DR4, UX-DR10, UX-DR11, UX-DR12.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.4: Search the Catalog
+### Story 1.5: Search the Catalog
 
 As a visitor,
 I want to search films by their information,
@@ -300,12 +336,12 @@ So that I can quickly find a film I am interested in.
 **When** focused automated tests run,
 **Then** they verify matching across all five fields, partial case-insensitive matching, no-results behavior, and query clearing.
 
-**Implementation order:** 4 overall; fourth story in Epic 1.
-**Technical dependencies:** Stories 1.1 and 1.3 for the loaded catalog, Home view, and sticky header.
+**Implementation order:** 5 overall; fifth story in Epic 1.
+**Technical dependencies:** Stories 1.2 and 1.4 for the loaded catalog, Home view, and sticky header.
 **Requirements:** FR4, FR5; NFR2, NFR3, NFR5; UX-DR3, UX-DR10, UX-DR11, UX-DR12.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.5: Switch Card Image Orientation
+### Story 1.6: Switch Card Image Orientation
 
 As a visitor,
 I want to switch between portrait and landscape film cards,
@@ -337,12 +373,12 @@ So that I can browse using the image presentation I prefer.
 **When** focused automated tests run,
 **Then** they verify the default portrait mode and both directions of the view toggle.
 
-**Implementation order:** 5 overall; fifth story in Epic 1.
-**Technical dependencies:** Stories 1.1 and 1.4 for film cards and the search toolbar where the control is placed.
+**Implementation order:** 6 overall; sixth story in Epic 1.
+**Technical dependencies:** Stories 1.2 and 1.5 for film cards and the search toolbar where the control is placed.
 **Requirements:** FR2; NFR1, NFR2, NFR3; UX-DR5, UX-DR6, UX-DR7, UX-DR10, UX-DR11.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.6: Choose and Remember a Theme
+### Story 1.7: Choose and Remember a Theme
 
 As a visitor,
 I want to choose light or dark appearance,
@@ -382,12 +418,12 @@ So that I can comfortably use Muvdash in my preferred theme.
 **When** focused automated tests run,
 **Then** they verify the dark default, restoration of a saved preference, and persistence after a theme change.
 
-**Implementation order:** 6 overall; sixth story in Epic 1.
-**Technical dependencies:** Stories 1.1 and 1.3 for theme tokens and the responsive header.
+**Implementation order:** 7 overall; seventh story in Epic 1.
+**Technical dependencies:** Stories 1.1 and 1.4 for theme tokens and the responsive header.
 **Requirements:** NFR2, NFR3; UX-DR1, UX-DR9, UX-DR10, UX-DR11.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
-### Story 1.7: Get Contextual Help for Icon Controls
+### Story 1.8: Get Contextual Help for Icon Controls
 
 As a visitor,
 I want brief explanations for icon-only controls,
@@ -415,9 +451,10 @@ So that I can understand their actions before using them.
 **When** focused automated tests run,
 **Then** they verify activation, accessible description, and the specified dismissal behavior.
 
-**Implementation order:** 7 overall; seventh story in Epic 1.
-**Technical dependencies:** Stories 1.3 and 1.5 for the mobile menu and card-view control.
+**Implementation order:** 8 overall; eighth story in Epic 1.
+**Technical dependencies:** Stories 1.4 and 1.6 for the mobile menu and card-view control.
 **Requirements:** FR9; NFR2, NFR3; UX-DR10, UX-DR11, UX-DR13.
+**Implementation constraints:** The mobile menu and card-view control are proposed guidance targets. Confirm these targets with the product owner before implementing this story; do not add other tooltip targets without approval.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
 ## Epic 2: Explore a Film's Details
@@ -464,8 +501,8 @@ So that I can understand the film before choosing what to watch.
 **When** focused automated tests run,
 **Then** they verify the selected film, available core fields, and modal closing behavior.
 
-**Implementation order:** 8 overall; first story in Epic 2.
-**Technical dependencies:** Story 1.1's film cards and selected-film data.
+**Implementation order:** 9 overall; first story in Epic 2.
+**Technical dependencies:** Story 1.2's film cards and selected-film data.
 **Requirements:** FR2, FR6; NFR2, NFR3, NFR4; UX-DR2, UX-DR8, UX-DR10, UX-DR11.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
@@ -509,7 +546,7 @@ So that I can explore the additional information supplied by the Ghibli API.
 **When** focused automated tests run,
 **Then** they verify resolved relationship data, omission of absent fields, and the error-only modal on request failure.
 
-**Implementation order:** 9 overall; second story in Epic 2.
+**Implementation order:** 10 overall; second story in Epic 2.
 **Technical dependencies:** Story 2.1's details modal and selected-film context.
 **Requirements:** FR6, FR7; NFR2, NFR3, NFR4; UX-DR8, UX-DR10, UX-DR11, UX-DR12.
 **Parallel implementation:** No. Implement stories one at a time as requested.
