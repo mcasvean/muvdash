@@ -1,8 +1,8 @@
 ---
 title: Movie Dashboard (working title)
-status: draft
+status: final
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-19
 ---
 
 # Product Brief: Movie Dashboard
@@ -33,4 +33,4 @@ Movie playback is out of scope. Visual design will be decided in a separate UX d
 - What content belongs on the Contact and About routes?
   For now just some basic text, to know what page is selected (Contact text, and About text, on those pages) - later will be implemented in a feature requirement
 - What visual direction should the UX design use?
- this should be a separate discussion, to setup a UX file, for design and all that. 
+  this should be a separate discussion, to setup a UX file, for design and all that.

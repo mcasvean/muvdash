@@ -1,6 +1,6 @@
 ---
 title: Muvdash Architecture
-status: draft
+status: final
 created: 2026-10-19
 updated: 2026-10-19
 ---

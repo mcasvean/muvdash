@@ -1,6 +1,6 @@
 ---
 name: Muvdash
-status: draft
+status: final
 sources:
   - {planning_artifacts}/briefs/brief-bmad-2026-10-15/brief.md
   - {planning_artifacts}/briefs/brief-bmad-2026-10-15/addendum.md
