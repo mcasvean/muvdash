@@ -4,7 +4,7 @@
 
 ## Goal
 
-Deliver a useful, friendly Studio Ghibli catalog experience: visitors can browse a responsive film grid, find films through client-side search, recover from unavailable catalog data, choose a card presentation, and reach the Contact and About pages. The catalog should be useful independently of the film-details experience in Epic 2.
+Deliver a usable, mobile-first Studio Ghibli catalog where visitors can browse and search films, recover from an unavailable catalog, switch card image orientation, and reach the Contact and About routes. Epic 1 provides a useful catalog experience independently; film-detail exploration is completed in Epic 2.
 
 ## Stories
 
@@ -19,32 +19,30 @@ Deliver a useful, friendly Studio Ghibli catalog experience: visitors can browse
 
 ## Requirements & Constraints
 
-- The Home route fetches the catalog from `https://ghibliapi.vercel.app/films` when it mounts and shows skeleton cards while loading. A failed request or empty catalog uses the same friendly unavailable state with a retry action; no search matches use a distinct state.
-- Cards show only film image, title, and description; descriptions are limited to two rows. Keep cards consistently sized with centered image crops as needed. The responsive grid targets two columns on mobile, four on tablet, and six or more on desktop.
-- Search filters the loaded catalog immediately on the client, matching partial, case-insensitive text in title, release date, producer, director, and description. Clearing the query restores the full catalog without another catalog request.
-- Home, Contact, and About are in scope. Contact and About need only simple identifying text for this release.
-- Use a mobile-first experience and support keyboard and touch operation, visible focus, comfortable targets, and meaning that does not depend on color alone. Meet WCAG 2.2 AA contrast requirements and reduce motion intensity and duration when requested.
-- Apply the defined purple, turquoise, orange, and text roles in both themes, with compact readable typography, a clear hierarchy, softly rounded surfaces, and restrained shadows. Keep the experience friendly, legible, and supportive rather than decorative.
-- Search and navigation stay accessible while scrolling: the header is sticky, and search sits directly beneath it and compacts without overlap. Mobile navigation uses a dismissible menu; larger layouts show text route links.
-- Keep the two-option light/dark theme control visible across breakpoints. Default to dark when no preference is saved and persist the chosen theme in `localStorage`.
-- Do not invent tooltip targets or guidance behaviors beyond the defined icon-control scope. The UX artifacts do not settle broader guidance targets.
+- When Home mounts, fetch the film catalog from `https://ghibliapi.vercel.app/films` and show skeleton cards while loading. A failed request or empty catalog uses the same friendly unavailable state with retry; a search with no matches uses a distinct state.
+- Film cards contain only image, title, and description, with descriptions limited to two rows. Keep card sizing consistent and images center-cropped as needed. Target two columns on mobile, four on tablet, and six or more on desktop.
+- Filter the loaded catalog immediately on the client by partial, case-insensitive matches in title, release date, producer, director, and description. Clearing search restores the fetched catalog without another request.
+- Provide Home, Contact, and About routes. Contact and About need only identify the current page in this release.
+- Design mobile-first for keyboard and touch use, with visible focus, comfortable targets, and meaning not conveyed by color alone. Meet WCAG 2.2 AA contrast requirements and reduce motion intensity and duration when requested.
+- Story 1.8's proposed tooltip targets are the mobile menu and card-view control. Product-owner confirmation of these targets is required before implementation; do not add other targets without approval.
 
 ## Technical Decisions
 
-- Create the frontend at the Git repository root, alongside (not inside) the `bmad/` planning/tooling directory. Preserve the existing BMAD files and license.
-- Implement one client-side Vue 3 application using Vite, TypeScript, Pinia, Vue Router, and Vuetify. No backend is in MVP scope.
-- Keep route pages, UI components, API access, and state responsibilities separate without unnecessary abstraction. Isolate API calls in a service or composable; keep state limited to catalog/loading/error, selected film, search/view/modal/navigation UI, and theme preference.
-- The Ghibli API data is the boundary for catalog data and supplied assets. Load images from URLs in the data; do not add independent providers or unrelated endpoints. Related resources are for details and are requested only when needed.
-- Design for partial data and request failures. Omit absent information rather than rendering placeholders or raw API identifiers/URLs.
-- Preserve focused automated coverage for catalog loading and error states, search, theme persistence, and route navigation.
+- Create the frontend at the Git repository root, alongside the `bmad/` directory; preserve existing BMAD files and the repository license.
+- Use one client-side Vue 3 application with Vite, TypeScript, Pinia, Vue Router, and Vuetify. No backend is in MVP scope.
+- Separate route pages, UI components, API access, and state responsibilities without unnecessary abstraction. Isolate API access in a service or composable; keep state limited to catalog/loading/error, selected film, search/view/modal/navigation UI, and theme preference.
+- Use the Ghibli data as the boundary for catalog records, related-resource URLs, and supplied image assets. Do not query independent providers or unrelated endpoints; request related data only when needed for film details.
+- Tolerate missing fields and request failures. Omit absent information rather than showing placeholders or raw API identifiers/URLs. Keep focused automated coverage for catalog loading/recovery, search, theme persistence, and route navigation.
 
 ## UX & Interaction Patterns
 
-- Keep film cards image-first, with title and short description following; retain this hierarchy in portrait and landscape modes. Default to portrait imagery and place the compact view control beside search.
-- Keep Home, Contact, and About as plain text route labels; the MuvDash text logo links to Home. The mobile menu closes on outside tap, close action, or route selection.
-- The theme selector uses sun/moon icons with a visibly highlighted active option. Use subtle transitions for loading and interactions, reduced when the device requests reduced motion.
+- Preserve the image-first card hierarchy in portrait and landscape modes. Default to portrait imagery and place the compact view control beside search.
+- Use the defined purple, turquoise, orange, and text color roles across dark and light themes; keep typography compact and readable, hierarchy clear, corners softly rounded, and shadows restrained.
+- Keep the header sticky and search directly beneath it, visible while scrolling and compacting without overlap. Use text route labels and a MuvDash text logo linking to Home. Mobile navigation dismisses on outside tap, close action, or route selection; larger layouts show route links.
+- Keep a two-option light/dark control visible at all breakpoints, with sun/moon icons and a highlighted active option. Default to dark without a saved preference and persist the choice in `localStorage`.
+- Use subtle interaction transitions and reduce them when the device requests reduced motion. Keep copy friendly, clear, and supportive.
 
 ## Cross-Story Dependencies
 
-- Implement Epic 1 stories strictly one at a time in their listed order. Story 1.1 scaffolds the frontend and registers the approved client stack; Story 1.2 builds the catalog on that foundation. Later search, view, theme, route, and help behavior builds on the relevant catalog or shell controls.
-- Epic 2 depends on Epic 1's selectable film catalog; the detailed film modal and related-data behavior belong to Epic 2, not this epic's catalog-card context.
+- Implement stories strictly one at a time in the listed order. The scaffold precedes catalog browsing; subsequent catalog, route, search, view, theme, and guidance work builds on the relevant app shell or catalog controls.
+- Epic 2 depends on Epic 1's selectable film catalog. The details modal and related-data behavior belong to Epic 2.
