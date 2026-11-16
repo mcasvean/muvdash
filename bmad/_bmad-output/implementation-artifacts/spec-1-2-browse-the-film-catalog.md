@@ -2,7 +2,7 @@
 title: "Browse the Film Catalog"
 type: "feature"
 created: "2026-10-19"
-status: "in-progress"
+status: "done"
 route: "dispatch"
 review_loop_iteration: 0
 baseline_commit: "b9550f342ea9b85bc9b7aedf9c26eceb4238994e"
@@ -49,11 +49,11 @@ context:
 
 **Execution:**
 
-- [ ] `frontend/src/services/filmService.ts` -- Fetch and type the film array from `https://ghibliapi.vercel.app/films` -- isolate external I/O and preserve the API boundary.
-- [ ] `frontend/src/stores/films.ts` -- Add catalog, loading, and request-error state plus a single load action -- share request state with Home without introducing later-story behavior.
-- [ ] `frontend/src/components/FilmCard.vue` -- Render available image, title, and description with stable aspect ratio and two-line truncation -- reuse one card contract per film.
-- [ ] `frontend/src/views/HomeView.vue` -- Load on mount, show skeletons while pending, and render the responsive card grid on success -- deliver the Home browsing flow.
-- [ ] `frontend/src/__tests__/catalog.spec.ts` -- Mock the fetch boundary and verify request, loading, success, partial data, responsive classes, and card fields -- cover the story's observable behavior.
+- [x] `frontend/src/services/filmService.ts` -- Fetch and type the film array from `https://ghibliapi.vercel.app/films` -- isolate external I/O and preserve the API boundary.
+- [x] `frontend/src/stores/films.ts` -- Add catalog, loading, and request-error state plus a single load action -- share request state with Home without introducing later-story behavior.
+- [x] `frontend/src/components/FilmCard.vue` -- Render available image, title, and description with stable aspect ratio and two-line truncation -- reuse one card contract per film.
+- [x] `frontend/src/views/HomeView.vue` -- Load on mount, show skeletons while pending, and render the responsive card grid on success -- deliver the Home browsing flow.
+- [x] `frontend/src/__tests__/catalog.spec.ts` -- Mock the fetch boundary and verify request, loading, success, partial data, responsive classes, and card fields -- cover the story's observable behavior.
 
 **Acceptance Criteria:**
 
@@ -69,9 +69,32 @@ context:
 
 ## Implementation Notes
 
+- Implemented the catalog fetch/store flow, loading and unavailable states, and accessible responsive film cards with stable image sizing, two-line descriptions, and reduced-motion skeleton styling.
+- Set the six-column breakpoint to Vuetify `lg` for both skeletons and film cards so it applies at desktop widths; the responsive test verifies the corresponding grid classes.
+- Validate catalog records before rendering, provide fallback alt text when a poster has no title, and cover invalid records, rejected requests, image sources, card sizing, truncation, and reduced-motion styling in focused tests.
+- The live catalog endpoint was not exercised; catalog behavior is covered with mocked fetch responses.
+
 ## Verification
 
 **Commands:**
 
-- `npm --prefix frontend run test:unit -- --run` -- expected: all focused catalog and app tests pass.
-- `npm --prefix frontend run build` -- expected: TypeScript checks and Vite production build pass.
+- `npm --prefix frontend run test:unit -- --run` -- passed: 2 test files, 9 tests.
+- `npm --prefix frontend run build` -- passed: TypeScript check and Vite production build.
+- `git diff --check` -- passed.
+
+## Review Triage Log
+
+| Reviewer finding | Verdict and evidence |
+| --- | --- |
+| Blind Hunter: malformed catalog records could reach rendering and crash the catalog. | `medium — patch`: the fetch boundary now validates IDs and optional field types; a malformed-record test confirms the unavailable state is shown instead of rendering invalid data. |
+| Edge Case Hunter: a `null` catalog entry could reach rendering. | `medium — patch`: this is the same input-validation defect; the new record guard and malformed-record test cover it. |
+| Blind Hunter: an image without a film title had empty alternative text. | `medium — patch`: untitled posters now have the descriptive fallback `Film poster`, covered by the catalog test. |
+| Edge Case Hunter: an image without a title was treated as decorative. | `medium — patch`: this is the same alternative-text defect; the fallback text is asserted in the catalog test. |
+| Blind Hunter: a rejected network request was not tested. | `low — patch`: a rejected-fetch test now verifies the unavailable message and absence of retry controls. |
+| Blind Hunter: reduced-motion behavior was not tested. | `low — patch`: the catalog test now verifies the reduced-motion CSS rule disables skeleton animation. |
+| Blind Hunter: the two-line description limit was not tested. | `low — patch`: the catalog test now verifies the description line clamp. |
+| Blind Hunter: the missing-image frame ratio was not tested. | `low — patch`: the catalog test now verifies the reserved image-frame aspect ratio. |
+| Edge Case Hunter: tablet landscape widths of 960–1279px use two columns. | `false`: Vuetify's `sm="3"` spans one quarter of the grid (four cards per row) until `lg`; `lg="2"` spans one sixth (six cards per row), not two. The installed Vuetify `lg` threshold is 1145px, so the claimed two-column outcome does not occur. |
+| Verification Gap Reviewer: the supplied image URL was not asserted. | `low — patch`: the catalog test now compares the rendered image source with the fixture URL. |
+| Verification Gap Reviewer: card frame sizing and description truncation were not asserted. | `low — patch`: the test now verifies both corresponding CSS rules. |
+| Verification Gap Reviewer: reduced-motion behavior was not asserted. | `low — patch`: the test now verifies the reduced-motion media rule and its disabled animation declaration. |

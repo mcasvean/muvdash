@@ -7,6 +7,27 @@ export interface Film {
 
 const FILMS_ENDPOINT = 'https://ghibliapi.vercel.app/films'
 
+function isFilm(value: unknown): value is Film {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
+
+  const film = value as Record<string, unknown>
+  const optionalFields = ['title', 'image', 'description']
+
+  return (
+    typeof film.id === 'string' &&
+    optionalFields.every(
+      (field) =>
+        film[field] === undefined || film[field] === null || typeof film[field] === 'string',
+    )
+  )
+}
+
+function isFilmArray(value: unknown): value is Film[] {
+  return Array.isArray(value) && value.every(isFilm)
+}
+
 export async function fetchFilms(): Promise<Film[]> {
   const response = await fetch(FILMS_ENDPOINT)
 
@@ -16,9 +37,9 @@ export async function fetchFilms(): Promise<Film[]> {
 
   const films: unknown = await response.json()
 
-  if (!Array.isArray(films)) {
-    throw new Error('Film catalog response was not an array')
+  if (!isFilmArray(films)) {
+    throw new Error('Film catalog response contained invalid film records')
   }
 
-  return films as Film[]
+  return films
 }

@@ -12,7 +12,7 @@ defineProps<{
       <v-img
         v-if="film.image"
         :src="film.image"
-        :alt="film.title ? `Poster for ${film.title}` : ''"
+        :alt="film.title ? `Poster for ${film.title}` : 'Film poster'"
         cover
         class="film-card__image"
       />

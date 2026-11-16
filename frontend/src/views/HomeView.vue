@@ -18,7 +18,7 @@ onMounted(() => {
       <p v-if="filmsStore.isLoading" class="visually-hidden" role="status">Loading films</p>
 
       <v-row v-if="filmsStore.isLoading" class="film-grid" aria-hidden="true">
-        <v-col v-for="skeleton in 12" :key="skeleton" cols="6" sm="3" xl="2">
+        <v-col v-for="skeleton in 12" :key="skeleton" cols="6" sm="3" lg="2">
           <article class="film-skeleton">
             <div class="film-skeleton__image" />
             <div class="film-skeleton__content">
@@ -34,7 +34,7 @@ onMounted(() => {
       </p>
 
       <v-row v-else class="film-grid">
-        <v-col v-for="film in filmsStore.catalog" :key="film.id" cols="6" sm="3" xl="2">
+        <v-col v-for="film in filmsStore.catalog" :key="film.id" cols="6" sm="3" lg="2">
           <FilmCard :film="film" />
         </v-col>
       </v-row>
