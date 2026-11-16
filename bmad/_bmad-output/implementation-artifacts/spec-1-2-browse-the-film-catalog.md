@@ -67,6 +67,18 @@ context:
 - Given the catalog request fails or returns an empty array, when loading completes, then Home displays `Unable to load films` without retry controls.
 - Given the catalog fetch service is implemented, when focused tests run, then they verify the endpoint, pending state, successful array rendering, and partial records without relying on live API availability.
 
+### Review Findings
+
+- [x] [Review][Patch] Reject empty and duplicate catalog IDs [frontend/src/services/filmService.ts:27]
+- [x] [Review][Patch] Cover invalid IDs and optional field types in catalog tests [frontend/src/__tests__/catalog.spec.ts:168]
+- [x] [Review][Patch] Verify effective mobile, tablet, and desktop column counts [frontend/src/__tests__/catalog.spec.ts:139]
+- [x] [Review][Patch] Assert that no sample films are shown while loading [frontend/src/__tests__/catalog.spec.ts:81]
+
+#### Rejected
+
+- `false` — The spec being `done` while the sprint story is `review` is the intended transition between Build completion and the separate code-review gate; the tracker will be synced after this review.
+- `low` — Measurable theme contrast remains a product-owner/developer follow-up already tracked in `deferred-work.md`; this catalog review does not change the approved theme, and editing its frozen spec is outside this review.
+
 ## Implementation Notes
 
 - Implemented the catalog fetch/store flow, loading and unavailable states, and accessible responsive film cards with stable image sizing, two-line descriptions, and reduced-motion skeleton styling.
@@ -78,7 +90,7 @@ context:
 
 **Commands:**
 
-- `npm --prefix frontend run test:unit -- --run` -- passed: 2 test files, 9 tests.
+- `npm --prefix frontend run test:unit -- --run` -- passed: 2 test files, 13 tests.
 - `npm --prefix frontend run build` -- passed: TypeScript check and Vite production build.
 - `git diff --check` -- passed.
 

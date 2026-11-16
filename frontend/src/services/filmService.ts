@@ -25,7 +25,21 @@ function isFilm(value: unknown): value is Film {
 }
 
 function isFilmArray(value: unknown): value is Film[] {
-  return Array.isArray(value) && value.every(isFilm)
+  if (!Array.isArray(value)) {
+    return false
+  }
+
+  const ids = new Set<string>()
+
+  for (const film of value) {
+    if (!isFilm(film) || film.id.trim() === '' || ids.has(film.id)) {
+      return false
+    }
+
+    ids.add(film.id)
+  }
+
+  return true
 }
 
 export async function fetchFilms(): Promise<Film[]> {

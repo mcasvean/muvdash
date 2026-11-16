@@ -77,6 +77,8 @@ describe('film catalog', () => {
     expect(root.querySelector('.film-skeleton')).not.toBeNull()
     expect(root.querySelector('[aria-busy="true"]')).not.toBeNull()
     expect(root.querySelector('[role="status"]')?.textContent).toContain('Loading films')
+    expect(root.querySelectorAll('.film-card')).toHaveLength(0)
+    expect(root.textContent).not.toContain('Totoro')
 
     resolveResponse(jsonResponse([]))
   })
@@ -131,7 +133,19 @@ describe('film catalog', () => {
     const column = root.querySelector('.film-grid .v-col')
     expect(column?.classList.contains('v-col--cols-6')).toBe(true)
     expect(column?.classList.contains('v-col--cols-sm-3')).toBe(true)
+    expect(column?.classList.contains('v-col--cols-md-3')).toBe(true)
     expect(column?.classList.contains('v-col--cols-lg-2')).toBe(true)
+
+    const responsiveColumns = [
+      { width: 375, className: 'v-col--cols-6', count: 2 },
+      { width: 1024, className: 'v-col--cols-md-3', count: 4 },
+      { width: 1440, className: 'v-col--cols-lg-2', count: 6 },
+    ]
+    for (const breakpoint of responsiveColumns) {
+      const span = Number(breakpoint.className.split('-').pop())
+      expect(column?.classList.contains(breakpoint.className)).toBe(true)
+      expect(12 / span).toBe(breakpoint.count)
+    }
   })
 
   it('keeps film card dimensions, truncation, and reduced-motion behavior', () => {
@@ -151,6 +165,10 @@ describe('film catalog', () => {
     ['a failed request', jsonResponse({}, false)],
     ['an empty catalog', jsonResponse([])],
     ['a malformed film record', jsonResponse([null])],
+    ['a missing film ID', jsonResponse([{}])],
+    ['an empty film ID', jsonResponse([{ id: ' ' }])],
+    ['duplicate film IDs', jsonResponse([{ id: 'film-1' }, { id: 'film-1' }])],
+    ['an invalid optional field', jsonResponse([{ id: 'film-1', title: 42 }])],
   ])('shows the temporary unavailable message after %s', async (_scenario, response) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
     const root = await mountHome()
