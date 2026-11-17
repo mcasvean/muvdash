@@ -169,23 +169,140 @@ describe('film catalog', () => {
     ['an empty film ID', jsonResponse([{ id: ' ' }])],
     ['duplicate film IDs', jsonResponse([{ id: 'film-1' }, { id: 'film-1' }])],
     ['an invalid optional field', jsonResponse([{ id: 'film-1', title: 42 }])],
-  ])('shows the temporary unavailable message after %s', async (_scenario, response) => {
+  ])('shows the unavailable card with retry after %s', async (_scenario, response) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
     const root = await mountHome()
 
     await vi.waitFor(() => expect(root.textContent).toContain('Unable to load films'))
 
-    expect(root.querySelector('button')).toBeNull()
+    const statusMessage = root.querySelector('[role="status"]')?.textContent ?? ''
+    expect(statusMessage).toContain('Unable to load films')
+    expect(statusMessage).not.toContain('No results')
+
+    const button = root.querySelector('button')
+    expect(button).not.toBeNull()
+    expect(button?.textContent).toContain('Retry loading films')
+    expect(button?.getAttribute('aria-label')).toBe('Retry loading films')
     expect(root.querySelectorAll('.film-card')).toHaveLength(0)
   })
 
-  it('shows the temporary unavailable message when the fetch rejects', async () => {
+  it('shows the unavailable card with retry when the fetch rejects', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network unavailable')))
     const root = await mountHome()
 
     await vi.waitFor(() => expect(root.textContent).toContain('Unable to load films'))
 
-    expect(root.querySelector('button')).toBeNull()
+    const button = root.querySelector('button')
+    expect(button).not.toBeNull()
+    expect(button?.getAttribute('aria-label')).toBe('Retry loading films')
     expect(root.querySelectorAll('.film-card')).toHaveLength(0)
+  })
+
+  it('retries the catalog request and restores the loading/results flow', async () => {
+    let resolveRetry!: (response: ReturnType<typeof jsonResponse>) => void
+    const retryResponse = new Promise<ReturnType<typeof jsonResponse>>((resolve) => {
+      resolveRetry = resolve
+    })
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Network unavailable'))
+      .mockReturnValueOnce(retryResponse)
+    vi.stubGlobal('fetch', fetchMock)
+
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+
+    const button = root.querySelector('button')
+    button?.click()
+    button?.click()
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() =>
+      expect(root.querySelector('.visually-hidden')?.textContent).toContain('Loading films'),
+    )
+    expect(root.querySelector('[aria-busy="true"]')).not.toBeNull()
+
+    resolveRetry(
+      jsonResponse([
+        { id: 'film-1', title: 'My Neighbor Totoro', image: 'https://example.test/totoro.jpg' },
+      ]),
+    )
+    await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(1))
+    expect(root.textContent).toContain('My Neighbor Totoro')
+    expect(root.querySelector('button')).toBeNull()
+  })
+
+  it.each([
+    ['a failed response', jsonResponse({}, false)],
+    ['an empty response', jsonResponse([])],
+  ])('keeps retry available after a repeated %s', async (_scenario, retryResponse) => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(retryResponse)
+    vi.stubGlobal('fetch', fetchMock)
+
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+
+    const retryButton = root.querySelector('button')
+    retryButton?.click()
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() =>
+      expect(root.querySelector('button')?.textContent).toContain('Retry loading films'),
+    )
+    expect(root.textContent).toContain('Unable to load films')
+    expect(root.querySelector('button')?.getAttribute('aria-label')).toBe('Retry loading films')
+  })
+
+  it('keeps retry available when the retry request rejects', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockRejectedValueOnce(new Error('Network unavailable'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+    root.querySelector('button')?.click()
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() =>
+      expect(root.querySelector('button')?.textContent).toContain('Retry loading films'),
+    )
+    expect(root.querySelectorAll('.film-card')).toHaveLength(0)
+  })
+
+  it('gives the retry control an accessible name and a comfortable touch target', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([])))
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+
+    const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
+    const cardRule = rules.find((rule) => rule.cssText.startsWith('.catalog-unavailable {'))
+    const messageRule = rules.find((rule) =>
+      rule.cssText.startsWith('.catalog-unavailable__message'),
+    )
+    const buttonRule = rules.find((rule) => rule.cssText.startsWith('.catalog-unavailable__button'))
+    const focusRule = rules.find((rule) =>
+      rule.cssText.startsWith('.catalog-unavailable__button:focus-visible'),
+    )
+    const button = root.querySelector('button')
+    button?.focus()
+
+    expect(button?.tagName).toBe('BUTTON')
+    expect(button?.getAttribute('type')).toBe('button')
+    expect(document.activeElement).toBe(button)
+    expect(buttonRule?.cssText).toContain('min-block-size: 2.75rem')
+    expect(cardRule?.cssText).toContain('--v-theme-surface')
+    expect(cardRule?.cssText).toContain('--v-theme-on-surface')
+    expect(cardRule?.cssText).not.toContain('transition')
+    expect(cardRule?.cssText).not.toContain('animation')
+    expect(messageRule?.cssText).toContain('--v-theme-on-surface-variant')
+    expect(focusRule?.cssText).toContain('--v-theme-secondary')
+    expect(focusRule?.cssText).toContain('outline: 2px solid')
+    expect(root.querySelector('button')?.getAttribute('aria-label')).toBe('Retry loading films')
   })
 })

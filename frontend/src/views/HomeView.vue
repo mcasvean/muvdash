@@ -5,6 +5,11 @@ import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
 
+const retryCatalog = () => {
+  if (filmsStore.isLoading) return
+  void filmsStore.loadFilms()
+}
+
 onMounted(() => {
   void filmsStore.loadFilms()
 })
@@ -29,9 +34,30 @@ onMounted(() => {
         </v-col>
       </v-row>
 
-      <p v-else-if="filmsStore.requestError" class="catalog-message" role="status">
-        Unable to load films
-      </p>
+      <v-card
+        v-else-if="filmsStore.requestError"
+        class="catalog-unavailable"
+        rounded="lg"
+        elevation="2"
+      >
+        <div class="catalog-unavailable__content">
+          <div role="status">
+            <p class="catalog-unavailable__title">Unable to load films</p>
+            <p class="catalog-unavailable__message">Please try again.</p>
+          </div>
+          <v-btn
+            type="button"
+            class="catalog-unavailable__button"
+            color="secondary"
+            variant="flat"
+            size="large"
+            aria-label="Retry loading films"
+            @click="retryCatalog"
+          >
+            Retry loading films
+          </v-btn>
+        </div>
+      </v-card>
 
       <v-row v-else class="film-grid">
         <v-col v-for="film in filmsStore.catalog" :key="film.id" cols="6" sm="3" md="3" lg="2">
@@ -58,10 +84,43 @@ h1 {
   row-gap: 0;
 }
 
-.catalog-message {
-  padding-block: 3rem;
-  color: rgb(var(--v-theme-on-background));
-  text-align: center;
+.catalog-unavailable {
+  max-width: 32rem;
+  margin: 0 auto;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.catalog-unavailable__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+}
+
+.catalog-unavailable__title {
+  margin: 0;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.catalog-unavailable__message {
+  margin: 0;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.95rem;
+}
+
+.catalog-unavailable__button {
+  min-block-size: 2.75rem;
+  min-inline-size: 10rem;
+}
+
+.catalog-unavailable__button:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: 2px;
 }
 
 .film-skeleton {
