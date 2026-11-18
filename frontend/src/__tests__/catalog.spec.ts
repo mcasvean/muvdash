@@ -90,6 +90,7 @@ describe('film catalog', () => {
           id: 'film-1',
           title: 'My Neighbor Totoro',
           image: 'https://example.test/totoro.jpg',
+          movie_banner: 'https://example.test/totoro-banner.jpg',
           description:
             'Two sisters discover forest spirits. '.repeat(20),
         },
@@ -110,6 +111,7 @@ describe('film catalog', () => {
     expect(firstCard?.querySelector('img')?.getAttribute('src')).toBe(
       'https://example.test/totoro.jpg',
     )
+    expect(firstCard?.querySelector('.film-card__image-frame--portrait')).not.toBeNull()
     const partialCard = cards.item(1)
     expect(partialCard?.textContent).toContain('Only Yesterday')
     expect(partialCard?.querySelector('img')).toBeNull()
@@ -119,6 +121,65 @@ describe('film catalog', () => {
     expect(imageOnlyCard?.querySelector('img')?.getAttribute('alt')).toBe('Film poster')
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(root.textContent).not.toContain('film-1')
+  })
+
+  it('switches between portrait posters and landscape banners', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse([
+          {
+            id: 'film-1',
+            title: 'My Neighbor Totoro',
+            image: 'https://example.test/totoro.jpg',
+            movie_banner: 'https://example.test/totoro-banner.jpg',
+          },
+        ]),
+      ),
+    )
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
+
+    const toggle = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Card orientation: portrait"]',
+    )
+    expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
+      'https://example.test/totoro.jpg',
+    )
+    expect(toggle?.getAttribute('aria-pressed')).toBe('false')
+    expect(toggle?.textContent).toContain('portrait')
+    toggle?.focus()
+    expect(document.activeElement).toBe(toggle)
+
+    toggle?.click()
+    await vi.waitFor(() =>
+      expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
+        'https://example.test/totoro-banner.jpg',
+      ),
+    )
+
+    const landscapeToggle = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Card orientation: landscape"]',
+    )
+    expect(landscapeToggle?.getAttribute('aria-pressed')).toBe('true')
+    expect(landscapeToggle?.textContent).toContain('landscape')
+    expect(root.querySelector('.film-card__image-frame--landscape')).not.toBeNull()
+    expect(root.querySelector('.film-card img')?.getAttribute('alt')).toBe(
+      'Banner for My Neighbor Totoro',
+    )
+
+    landscapeToggle?.click()
+    await vi.waitFor(() =>
+      expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
+        'https://example.test/totoro.jpg',
+      ),
+    )
+    expect(
+      root
+        .querySelector<HTMLButtonElement>('button[aria-label="Card orientation: portrait"]')
+        ?.getAttribute('aria-pressed'),
+    ).toBe('false')
   })
 
   it('uses two, four, and six-column responsive grid breakpoints', async () => {
@@ -151,14 +212,22 @@ describe('film catalog', () => {
   it('keeps film card dimensions, truncation, and reduced-motion behavior', () => {
     const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
     const imageFrameRule = rules.find((rule) => rule.cssText.startsWith('.film-card__image-frame'))
+    const landscapeImageFrameRule = rules.find((rule) =>
+      rule.cssText.startsWith('.film-card__image-frame--landscape'),
+    )
     const descriptionRule = rules.find((rule) => rule.cssText.startsWith('.film-card__description'))
     const reducedMotionRule = rules.find((rule) =>
       rule.cssText.startsWith('@media (prefers-reduced-motion: reduce)'),
     )
 
     expect(imageFrameRule?.cssText).toContain('aspect-ratio: 2 / 3')
+    expect(landscapeImageFrameRule?.cssText).toContain('aspect-ratio: 16 / 9')
     expect(descriptionRule?.cssText).toContain('-webkit-line-clamp: 2')
     expect(reducedMotionRule?.cssText).toContain('animation: none')
+    const toggleRule = rules.find((rule) => rule.cssText.startsWith('.card-orientation-toggle {'))
+    const focusRule = rules.find((rule) => rule.cssText.startsWith('.card-orientation-toggle:focus-visible'))
+    expect(toggleRule?.cssText).toContain('min-height: 2.75rem')
+    expect(focusRule?.cssText).toContain('outline: 2px solid')
   })
 
   it.each([
@@ -169,6 +238,7 @@ describe('film catalog', () => {
     ['an empty film ID', jsonResponse([{ id: ' ' }])],
     ['duplicate film IDs', jsonResponse([{ id: 'film-1' }, { id: 'film-1' }])],
     ['an invalid optional field', jsonResponse([{ id: 'film-1', title: 42 }])],
+    ['an invalid landscape image', jsonResponse([{ id: 'film-1', movie_banner: 42 }])],
   ])('shows the unavailable card with retry after %s', async (_scenario, response) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
     const root = await mountHome()

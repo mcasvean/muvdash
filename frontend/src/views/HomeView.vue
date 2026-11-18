@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import FilmCard from '../components/FilmCard.vue'
 import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
+const orientation = ref<'portrait' | 'landscape'>('portrait')
+
+function toggleOrientation() {
+  orientation.value = orientation.value === 'portrait' ? 'landscape' : 'portrait'
+}
 
 const retryCatalog = () => {
   if (filmsStore.isLoading) return
@@ -18,6 +23,21 @@ onMounted(() => {
 <template>
   <v-container class="home-shell">
     <h1>Studio Ghibli films</h1>
+
+    <div class="card-orientation-toolbar">
+      <v-btn
+        type="button"
+        class="card-orientation-toggle"
+        color="secondary"
+        variant="outlined"
+        prepend-icon="mdi-aspect-ratio"
+        :aria-label="`Card orientation: ${orientation}`"
+        :aria-pressed="orientation === 'landscape'"
+        @click="toggleOrientation"
+      >
+        {{ orientation }}
+      </v-btn>
+    </div>
 
     <section class="catalog" aria-label="Film catalog" :aria-busy="filmsStore.isLoading">
       <p v-if="filmsStore.isLoading" class="visually-hidden" role="status">Loading films</p>
@@ -61,7 +81,7 @@ onMounted(() => {
 
       <v-row v-else class="film-grid">
         <v-col v-for="film in filmsStore.catalog" :key="film.id" cols="6" sm="3" md="3" lg="2">
-          <FilmCard :film="film" />
+          <FilmCard :film="film" :orientation="orientation" />
         </v-col>
       </v-row>
     </section>
@@ -78,6 +98,22 @@ h1 {
   color: rgb(var(--v-theme-secondary));
   font-size: 1.5rem;
   font-weight: 700;
+}
+
+.card-orientation-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.card-orientation-toggle {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.card-orientation-toggle:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: 2px;
 }
 
 .film-grid {

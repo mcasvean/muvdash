@@ -1,18 +1,30 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Film } from '../services/filmService'
 
-defineProps<{
+const props = defineProps<{
   film: Film
+  orientation: 'portrait' | 'landscape'
 }>()
+
+const imageSource = computed(() =>
+  props.orientation === 'landscape' ? props.film.movie_banner : props.film.image,
+)
 </script>
 
 <template>
   <v-card class="film-card" height="100%" rounded="lg" elevation="2">
-    <div class="film-card__image-frame">
+    <div class="film-card__image-frame" :class="`film-card__image-frame--${orientation}`">
       <v-img
-        v-if="film.image"
-        :src="film.image"
-        :alt="film.title ? `Poster for ${film.title}` : 'Film poster'"
+        v-if="imageSource"
+        :src="imageSource ?? undefined"
+        :alt="
+          film.title
+            ? `${orientation === 'landscape' ? 'Banner' : 'Poster'} for ${film.title}`
+            : orientation === 'landscape'
+              ? 'Film banner'
+              : 'Film poster'
+        "
         cover
         class="film-card__image"
       />
@@ -37,6 +49,10 @@ defineProps<{
   aspect-ratio: 2 / 3;
   overflow: hidden;
   background: rgb(var(--v-theme-primary));
+}
+
+.film-card__image-frame--landscape {
+  aspect-ratio: 16 / 9;
 }
 
 .film-card__image {
