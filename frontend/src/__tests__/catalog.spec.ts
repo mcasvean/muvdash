@@ -179,7 +179,7 @@ describe('film catalog', () => {
     expect(statusMessage).toContain('Unable to load films')
     expect(statusMessage).not.toContain('No results')
 
-    const button = root.querySelector('button')
+    const button = root.querySelector<HTMLButtonElement>('button[aria-label="Retry loading films"]')
     expect(button).not.toBeNull()
     expect(button?.textContent).toContain('Retry loading films')
     expect(button?.getAttribute('aria-label')).toBe('Retry loading films')
@@ -192,7 +192,7 @@ describe('film catalog', () => {
 
     await vi.waitFor(() => expect(root.textContent).toContain('Unable to load films'))
 
-    const button = root.querySelector('button')
+    const button = root.querySelector<HTMLButtonElement>('button[aria-label="Retry loading films"]')
     expect(button).not.toBeNull()
     expect(button?.getAttribute('aria-label')).toBe('Retry loading films')
     expect(root.querySelectorAll('.film-card')).toHaveLength(0)
@@ -210,9 +210,11 @@ describe('film catalog', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const root = await mountHome()
-    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+    await vi.waitFor(() =>
+      expect(root.querySelector('button[aria-label="Retry loading films"]')).not.toBeNull(),
+    )
 
-    const button = root.querySelector('button')
+    const button = root.querySelector<HTMLButtonElement>('button[aria-label="Retry loading films"]')
     button?.click()
     button?.click()
 
@@ -229,7 +231,7 @@ describe('film catalog', () => {
     )
     await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(1))
     expect(root.textContent).toContain('My Neighbor Totoro')
-    expect(root.querySelector('button')).toBeNull()
+    expect(root.querySelector('button[aria-label="Retry loading films"]')).toBeNull()
   })
 
   it.each([
@@ -243,17 +245,25 @@ describe('film catalog', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const root = await mountHome()
-    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+    await vi.waitFor(() =>
+      expect(root.querySelector('button[aria-label="Retry loading films"]')).not.toBeNull(),
+    )
 
-    const retryButton = root.querySelector('button')
+    const retryButton = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Retry loading films"]',
+    )
     retryButton?.click()
 
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
     await vi.waitFor(() =>
-      expect(root.querySelector('button')?.textContent).toContain('Retry loading films'),
+      expect(root.querySelector('button[aria-label="Retry loading films"]')?.textContent).toContain(
+        'Retry loading films',
+      ),
     )
     expect(root.textContent).toContain('Unable to load films')
-    expect(root.querySelector('button')?.getAttribute('aria-label')).toBe('Retry loading films')
+    expect(
+      root.querySelector('button[aria-label="Retry loading films"]')?.getAttribute('aria-label'),
+    ).toBe('Retry loading films')
   })
 
   it('keeps retry available when the retry request rejects', async () => {
@@ -264,12 +274,16 @@ describe('film catalog', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const root = await mountHome()
-    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
-    root.querySelector('button')?.click()
+    await vi.waitFor(() =>
+      expect(root.querySelector('button[aria-label="Retry loading films"]')).not.toBeNull(),
+    )
+    root.querySelector<HTMLButtonElement>('button[aria-label="Retry loading films"]')?.click()
 
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
     await vi.waitFor(() =>
-      expect(root.querySelector('button')?.textContent).toContain('Retry loading films'),
+      expect(root.querySelector('button[aria-label="Retry loading films"]')?.textContent).toContain(
+        'Retry loading films',
+      ),
     )
     expect(root.querySelectorAll('.film-card')).toHaveLength(0)
   })
@@ -278,7 +292,9 @@ describe('film catalog', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([])))
     const root = await mountHome()
 
-    await vi.waitFor(() => expect(root.querySelector('button')).not.toBeNull())
+    await vi.waitFor(() =>
+      expect(root.querySelector('button[aria-label="Retry loading films"]')).not.toBeNull(),
+    )
 
     const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
     const cardRule = rules.find((rule) => rule.cssText.startsWith('.catalog-unavailable {'))
@@ -289,7 +305,7 @@ describe('film catalog', () => {
     const focusRule = rules.find((rule) =>
       rule.cssText.startsWith('.catalog-unavailable__button:focus-visible'),
     )
-    const button = root.querySelector('button')
+    const button = root.querySelector<HTMLButtonElement>('button[aria-label="Retry loading films"]')
     button?.focus()
 
     expect(button?.tagName).toBe('BUTTON')
@@ -303,6 +319,8 @@ describe('film catalog', () => {
     expect(messageRule?.cssText).toContain('--v-theme-on-surface-variant')
     expect(focusRule?.cssText).toContain('--v-theme-secondary')
     expect(focusRule?.cssText).toContain('outline: 2px solid')
-    expect(root.querySelector('button')?.getAttribute('aria-label')).toBe('Retry loading films')
+    expect(
+      root.querySelector('button[aria-label="Retry loading films"]')?.getAttribute('aria-label'),
+    ).toBe('Retry loading films')
   })
 })
