@@ -1,30 +1,80 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import FilmCard from '../components/FilmCard.vue'
 import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
+const searchQuery = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
+const isSearchCompact = ref(false)
 const orientation = ref<'portrait' | 'landscape'>('portrait')
 
-function toggleOrientation() {
-  orientation.value = orientation.value === 'portrait' ? 'landscape' : 'portrait'
-}
+const filteredFilms = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return filmsStore.catalog
+
+  const searchableFields = ['title', 'release_date', 'producer', 'director', 'description'] as const
+  return filmsStore.catalog.filter((film) =>
+    searchableFields.some((field) => film[field]?.toLowerCase().includes(query)),
+  )
+})
 
 const retryCatalog = () => {
   if (filmsStore.isLoading) return
   void filmsStore.loadFilms()
 }
 
+function updateSearchCompactState() {
+  isSearchCompact.value = window.scrollY > 24
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+  searchInput.value?.focus()
+}
+
+function toggleOrientation() {
+  orientation.value = orientation.value === 'portrait' ? 'landscape' : 'portrait'
+}
+
 onMounted(() => {
+  updateSearchCompactState()
+  window.addEventListener('scroll', updateSearchCompactState, { passive: true })
   void filmsStore.loadFilms()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateSearchCompactState)
 })
 </script>
 
 <template>
   <v-container class="home-shell">
-    <h1>Studio Ghibli films</h1>
-
-    <div class="card-orientation-toolbar">
+    <form
+      v-if="!filmsStore.isLoading && !filmsStore.requestError"
+      class="catalog-search"
+      :class="{ 'catalog-search--compact': isSearchCompact }"
+      role="search"
+      @submit.prevent
+    >
+      <label class="visually-hidden" for="film-search">Search films</label>
+      <input
+        id="film-search"
+        ref="searchInput"
+        v-model="searchQuery"
+        class="catalog-search__input"
+        type="search"
+        placeholder="Search by title, date, producer, director, or description"
+      />
+      <button
+        v-if="searchQuery"
+        class="catalog-search__clear"
+        type="button"
+        aria-label="Clear search"
+        @click="clearSearch"
+      >
+        Clear search
+      </button>
       <v-btn
         type="button"
         class="card-orientation-toggle"
@@ -37,7 +87,9 @@ onMounted(() => {
       >
         {{ orientation }}
       </v-btn>
-    </div>
+    </form>
+
+    <h1>Studio Ghibli films</h1>
 
     <section class="catalog" aria-label="Film catalog" :aria-busy="filmsStore.isLoading">
       <p v-if="filmsStore.isLoading" class="visually-hidden" role="status">Loading films</p>
@@ -79,8 +131,23 @@ onMounted(() => {
         </div>
       </v-card>
 
+      <div v-else-if="filteredFilms.length === 0" class="no-search-results" role="status">
+        <p class="no-search-results__title">No films found</p>
+        <p class="no-search-results__message">
+          Try a different search, or clear it to see the full catalog.
+        </p>
+        <button
+          class="catalog-search__clear"
+          type="button"
+          aria-label="Clear search"
+          @click="clearSearch"
+        >
+          Clear search
+        </button>
+      </div>
+
       <v-row v-else class="film-grid">
-        <v-col v-for="film in filmsStore.catalog" :key="film.id" cols="6" sm="3" md="3" lg="2">
+        <v-col v-for="film in filteredFilms" :key="film.id" cols="6" sm="3" md="3" lg="2">
           <FilmCard :film="film" :orientation="orientation" />
         </v-col>
       </v-row>
@@ -93,6 +160,75 @@ onMounted(() => {
   padding-block: 1.5rem 3rem;
 }
 
+.catalog-search {
+  position: sticky;
+  top: 4rem;
+  z-index: 1005;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: -1.5rem 0 1rem;
+  border-bottom: 1px solid rgba(var(--v-theme-on-background), 0.12);
+  padding: 0.75rem;
+  background: rgb(var(--v-theme-background));
+  transition:
+    padding 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.catalog-search--compact {
+  padding-block: 0.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.catalog-search__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  flex: 1;
+  border: 1px solid rgba(var(--v-theme-on-background), 0.3);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  font: inherit;
+}
+
+.catalog-search__input::placeholder {
+  color: rgb(var(--v-theme-on-surface-variant));
+  opacity: 1;
+}
+
+.catalog-search__input:focus-visible,
+.catalog-search__clear:focus-visible,
+.card-orientation-toggle:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: 2px;
+}
+
+.card-orientation-toggle {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  flex: none;
+}
+
+.catalog-search__clear {
+  display: inline-flex;
+  min-width: 6rem;
+  min-height: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(var(--v-theme-secondary));
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-secondary));
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
 h1 {
   margin-bottom: 1.25rem;
   color: rgb(var(--v-theme-secondary));
@@ -100,20 +236,26 @@ h1 {
   font-weight: 700;
 }
 
-.card-orientation-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.75rem;
+.no-search-results {
+  max-width: 32rem;
+  margin: 0 auto;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
 }
 
-.card-orientation-toggle {
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+.no-search-results__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
-.card-orientation-toggle:focus-visible {
-  outline: 2px solid rgb(var(--v-theme-secondary));
-  outline-offset: 2px;
+.no-search-results__message {
+  margin: 0 0 1rem;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.95rem;
 }
 
 .film-grid {
@@ -205,6 +347,21 @@ h1 {
   clip-path: inset(50%);
 }
 
+@media (max-width: 480px) {
+  .catalog-search {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+  }
+
+  .catalog-search__input {
+    padding-inline: 0.5rem;
+  }
+
+  .catalog-search__clear {
+    min-width: auto;
+  }
+}
+
 @keyframes skeleton-pulse {
   to {
     opacity: 0.55;
@@ -215,6 +372,14 @@ h1 {
   .film-skeleton__title,
   .film-skeleton__description {
     animation: none;
+  }
+
+  .catalog-search {
+    transition: none;
+  }
+
+  .card-orientation-toggle {
+    transition-duration: 0ms;
   }
 }
 </style>

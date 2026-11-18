@@ -1,4 +1,4 @@
-import type { App } from 'vue'
+import { nextTick, type App } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMuvdashApp } from '../createMuvdashApp'
 import FilmCardSource from '../components/FilmCard.vue?raw'
@@ -239,6 +239,9 @@ describe('film catalog', () => {
     ['duplicate film IDs', jsonResponse([{ id: 'film-1' }, { id: 'film-1' }])],
     ['an invalid optional field', jsonResponse([{ id: 'film-1', title: 42 }])],
     ['an invalid landscape image', jsonResponse([{ id: 'film-1', movie_banner: 42 }])],
+    ['an invalid release date', jsonResponse([{ id: 'film-1', release_date: 1986 }])],
+    ['an invalid producer', jsonResponse([{ id: 'film-1', producer: 42 }])],
+    ['an invalid director', jsonResponse([{ id: 'film-1', director: 42 }])],
   ])('shows the unavailable card with retry after %s', async (_scenario, response) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
     const root = await mountHome()
@@ -392,5 +395,144 @@ describe('film catalog', () => {
     expect(
       root.querySelector('button[aria-label="Retry loading films"]')?.getAttribute('aria-label'),
     ).toBe('Retry loading films')
+  })
+
+  it('filters locally with partial case-insensitive matches across all searchable film fields', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse([
+        {
+          id: 'film-1',
+          title: 'Castle in the Sky',
+          release_date: '1986',
+          producer: 'Isao Takahata',
+          director: 'Hayao Miyazaki',
+          description: 'A young boy and girl search for a legendary city.',
+        },
+        {
+          id: 'film-2',
+          title: "Kiki's Delivery Service",
+          release_date: '1989',
+          producer: 'Toshio Suzuki',
+          director: 'Tomomi Mochizuki',
+          description: 'A young witch begins a new life.',
+        },
+      ]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(2))
+
+    const input = root.querySelector<HTMLInputElement>('#film-search')
+    expect(input).not.toBeNull()
+
+    const searches = ['ASTLE', '986', 'sao taka', 'MIYAZ', 'legendary city']
+    for (const query of searches) {
+      input!.value = query
+      input!.dispatchEvent(new Event('input', { bubbles: true }))
+      await nextTick()
+      expect(root.querySelectorAll('.film-card')).toHaveLength(1)
+      expect(root.querySelector('.film-card__title')?.textContent).toBe('Castle in the Sky')
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows distinct no-results feedback and clears the query back to the full catalog', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse([
+        { id: 'film-1', title: 'Castle in the Sky' },
+        { id: 'film-2', title: "Kiki's Delivery Service" },
+      ]),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(2))
+
+    const input = root.querySelector<HTMLInputElement>('#film-search')
+    expect(input).not.toBeNull()
+    input!.value = 'unfindable title'
+    input!.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+
+    expect(root.querySelector('.no-search-results')).not.toBeNull()
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('No films found')
+    expect(root.querySelector('.catalog-unavailable')).toBeNull()
+
+    const clearButton = root.querySelector<HTMLButtonElement>(
+      '.no-search-results button[aria-label="Clear search"]',
+    )
+    expect(clearButton?.textContent).toContain('Clear search')
+    clearButton?.click()
+    await nextTick()
+
+    expect(root.querySelectorAll('.film-card')).toHaveLength(2)
+    expect(input?.value).toBe('')
+    expect(document.activeElement).toBe(input)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps search sticky, compacts it on scroll, and provides accessible controls', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(jsonResponse([{ id: 'film-1', title: 'Castle in the Sky' }])),
+    )
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('.catalog-search')).not.toBeNull())
+
+    const form = root.querySelector('.catalog-search')
+    const input = root.querySelector<HTMLInputElement>('#film-search')
+    input!.value = 'castle'
+    input!.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+    const clearButton = root.querySelector<HTMLButtonElement>(
+      '.catalog-search__clear[aria-label="Clear search"]',
+    )
+    const originalScrollY = Object.getOwnPropertyDescriptor(window, 'scrollY')
+    const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
+    const toolbarRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search {'))
+    const compactRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search--compact'))
+    const inputRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search__input {'))
+    const clearRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search__clear {'))
+    const focusRule = rules.find((rule) =>
+      rule.cssText.startsWith('.catalog-search__input:focus-visible'),
+    )
+    const reducedMotionRule = rules.find(
+      (rule) =>
+        rule.cssText.startsWith('@media (prefers-reduced-motion: reduce)') &&
+        rule.cssText.includes('.catalog-search {'),
+    )
+
+    expect(form?.getAttribute('role')).toBe('search')
+    expect(input?.getAttribute('type')).toBe('search')
+    expect(root.querySelector('label[for="film-search"]')?.textContent).toBe('Search films')
+    expect(clearButton?.textContent).toContain('Clear search')
+    input?.focus()
+    expect(document.activeElement).toBe(input)
+    expect(toolbarRule?.cssText).toContain('position: sticky')
+    expect(toolbarRule?.cssText).toContain('top: 4rem')
+    expect(inputRule?.cssText).toContain('min-height: 2.75rem')
+    expect(clearRule?.cssText).toContain('min-height: 2.75rem')
+    expect(focusRule?.cssText).toContain('outline: 2px solid')
+    expect(focusRule?.cssText).toContain('.catalog-search__clear:focus-visible')
+    clearButton?.focus()
+    expect(document.activeElement).toBe(clearButton)
+    input?.focus()
+    expect(reducedMotionRule?.cssText).toContain('transition: none')
+
+    try {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: 120 })
+      window.dispatchEvent(new Event('scroll'))
+      await nextTick()
+      expect(form?.classList.contains('catalog-search--compact')).toBe(true)
+      expect(compactRule?.cssText).toContain('padding-block: 0.25rem')
+    } finally {
+      if (originalScrollY) {
+        Object.defineProperty(window, 'scrollY', originalScrollY)
+      } else {
+        Reflect.deleteProperty(window, 'scrollY')
+      }
+    }
   })
 })

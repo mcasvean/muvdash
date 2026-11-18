@@ -3,6 +3,9 @@ export interface Film {
   title?: string | null
   image?: string | null
   movie_banner?: string | null
+  release_date?: string | null
+  producer?: string | null
+  director?: string | null
   description?: string | null
 }
 
@@ -14,7 +17,15 @@ function isFilm(value: unknown): value is Film {
   }
 
   const film = value as Record<string, unknown>
-  const optionalFields = ['title', 'image', 'movie_banner', 'description']
+  const optionalFields = [
+    'title',
+    'image',
+    'movie_banner',
+    'release_date',
+    'producer',
+    'director',
+    'description',
+  ]
 
   return (
     typeof film.id === 'string' &&
