@@ -21,7 +21,7 @@ context:
 
 ## Boundaries & Constraints
 
-**Always:** Keep this client-only and use the existing Vue 3, Pinia, Vuetify, and Vite setup. Show only each film's image, title, and description. Use the API `id` only as a stable key, never as visible text. Use supplied image URLs, tolerate missing fields without placeholders, preserve stable card sizing, and limit descriptions to two rows. Apply the approved responsive grid, color roles, contrast, and reduced-motion requirements. Fetch once per Home mount; do not issue catalog requests for rendering. If the request fails or returns an empty array, show the temporary message `Unable to load films` without a retry action; Story 1.3 replaces this with the final unavailable experience.
+**Always:** Keep this client-only and use the existing Vue 3, Pinia, Vuetify, and Vite setup. Show only each film's image, title, and description. Use the API `id` only as a stable key, never as visible text. Use supplied image URLs, tolerate missing fields without placeholders, preserve stable card sizing, and limit descriptions to two rows. Center the responsive catalog container within the same content boundaries as the header and use equal outer margins. Flow cards from left to right with small, consistent horizontal and vertical gaps; when there are fewer cards than grid slots, leave unused space on the right. Let cards flex to fit their grid tracks while capping each card at 18rem wide and 36rem tall. Apply the approved color roles, contrast, and reduced-motion requirements. Fetch once per Home mount; do not issue catalog requests for rendering. If the request fails or returns an empty array, show the temporary message `Unable to load films` without a retry action; Story 1.3 replaces this with the final unavailable experience.
 
 **Never:** Do not add search, a retry action or final unavailable card, navigation changes, theme controls, image-orientation toggling, film selection/details, or related-resource requests. These belong to later stories. Do not add a backend or independent data provider.
 
@@ -52,8 +52,8 @@ context:
 - [x] `frontend/src/services/filmService.ts` -- Fetch and type the film array from `https://ghibliapi.vercel.app/films` -- isolate external I/O and preserve the API boundary.
 - [x] `frontend/src/stores/films.ts` -- Add catalog, loading, and request-error state plus a single load action -- share request state with Home without introducing later-story behavior.
 - [x] `frontend/src/components/FilmCard.vue` -- Render available image, title, and description with stable aspect ratio and two-line truncation -- reuse one card contract per film.
-- [x] `frontend/src/views/HomeView.vue` -- Load on mount, show skeletons while pending, and render the responsive card grid on success -- deliver the Home browsing flow.
-- [x] `frontend/src/__tests__/catalog.spec.ts` -- Mock the fetch boundary and verify request, loading, success, partial data, responsive classes, and card fields -- cover the story's observable behavior.
+- [x] `frontend/src/views/HomeView.vue` -- Load on mount, show skeletons while pending, and render the responsive left-aligned card grid with consistent spacing on success -- deliver the Home browsing flow.
+- [x] `frontend/src/__tests__/catalog.spec.ts` -- Mock the fetch boundary and verify request, loading, success, partial data, responsive grid alignment, card size limits, and card fields -- cover the story's observable behavior.
 
 **Acceptance Criteria:**
 
@@ -61,7 +61,7 @@ context:
 - Given the request succeeds with films, when loading completes, then one card is rendered for each film and shows only its available image, title, and description.
 - Given a film has an image, when its card renders, then the image has descriptive alternative text derived from the film title.
 - Given a film field is missing, when its card renders, then the missing field is omitted without placeholder text and card dimensions remain stable.
-- Given the viewport is mobile, tablet, or desktop, when the grid renders, then it uses two, four, or at least six columns respectively; images use a centered crop and descriptions never exceed two rows.
+- Given the viewport is mobile, tablet, or desktop, when the grid renders, then its container is centered with equal outer margins and aligns to the header content boundaries; cards flow from left to right with small, consistent gaps and unused space remains on the right; each card remains at most 18rem wide and 36rem tall, images use a centered crop, and descriptions never exceed two rows.
 - Given the device requests reduced motion, when skeletons are visible, then their motion is static or reduced to a subtle treatment.
 - Given a catalog request succeeds, when Home is mounted once, then exactly one catalog request is made and card rendering makes no additional requests.
 - Given the catalog request fails or returns an empty array, when loading completes, then Home displays `Unable to load films` without retry controls.
@@ -82,7 +82,7 @@ context:
 ## Implementation Notes
 
 - Implemented the catalog fetch/store flow, loading and unavailable states, and accessible responsive film cards with stable image sizing, two-line descriptions, and reduced-motion skeleton styling.
-- Set the six-column breakpoint to Vuetify `lg` for both skeletons and film cards so it applies at desktop widths; the responsive test verifies the corresponding grid classes.
+- Use a centered, header-aligned catalog container with left-to-right auto-fill card tracks, small consistent gaps, and unused row space on the right. Cap film cards and loading skeletons at 18rem wide and 36rem tall.
 - Validate catalog records before rendering, provide fallback alt text when a poster has no title, and cover invalid records, rejected requests, image sources, card sizing, truncation, and reduced-motion styling in focused tests.
 - The live catalog endpoint was not exercised; catalog behavior is covered with mocked fetch responses.
 
@@ -90,8 +90,9 @@ context:
 
 **Commands:**
 
-- `npm --prefix frontend run test:unit -- --run` -- passed: 2 test files, 13 tests.
-- `npm --prefix frontend run build` -- passed: TypeScript check and Vite production build.
+- `npm --prefix frontend run test:unit -- --run` -- passed: 2 test files, 38 tests.
+- `npm --prefix frontend run build-only` -- passed: Vite production build.
+- `npm exec prettier -- --check src/views/HomeView.vue src/components/FilmCard.vue src/__tests__/catalog.spec.ts` (from `frontend`) -- passed.
 - `git diff --check` -- passed.
 
 ## Review Triage Log

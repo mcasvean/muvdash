@@ -39,6 +39,9 @@ const imageSource = computed(() =>
 <style scoped>
 .film-card {
   display: flex;
+  width: 100%;
+  max-width: 18rem;
+  max-height: 36rem;
   flex-direction: column;
   overflow: hidden;
   background: rgb(var(--v-theme-surface));

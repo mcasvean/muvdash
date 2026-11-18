@@ -169,8 +169,16 @@ So that I can browse the available films.
 
 **Given** the visitor views the catalog at mobile, tablet, or desktop widths,
 **When** the grid is rendered,
-**Then** it uses two columns on mobile, four on tablet, and six or more on desktop,
-**And** cards remain consistent in size and images are center-cropped as needed.
+**Then** the catalog container is centered with equal outer margins and responsive, readable card widths,
+**And** cards flow left to right with small, consistent horizontal and vertical gaps, leaving unused space on the right when the row is incomplete, and images are center-cropped as needed.
+
+**Given** the catalog is displayed below the app header,
+**When** the content is rendered,
+**Then** the left and right edges of the catalog align with the header logo and theme controls respectively.
+
+**Given** the catalog is displayed at any viewport width,
+**When** cards are rendered,
+**Then** they flex to fit their grid tracks without exceeding 18rem in width or 36rem in height.
 
 **Given** the visitor navigates the catalog by keyboard,
 **When** interactive controls receive focus,
@@ -323,6 +331,18 @@ So that I can quickly find a film I am interested in.
 **Given** the visitor scrolls the Home page,
 **When** the page moves,
 **Then** search remains visible directly below the sticky header and compacts without overlap.
+
+**Given** the catalog toolbar is displayed,
+**When** search and the card-orientation control are rendered,
+**Then** they are centered together and align with the catalog's left and right edges.
+
+**Given** a search returns one, two, or three films,
+**When** results are displayed,
+**Then** cards flow from the left with a small consistent gap, unused grid space remains on the right, and no card exceeds 18rem in width or 36rem in height.
+
+**Given** the search field is displayed in either theme,
+**When** its placeholder is visible,
+**Then** the placeholder has strong contrast against the input background and remains easy to read.
 
 **Given** the visitor uses search by keyboard or touch,
 **When** the input and clear action are focused or activated,

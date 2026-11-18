@@ -132,17 +132,15 @@ onBeforeUnmount(() => {
     <section class="catalog" aria-label="Film catalog" :aria-busy="filmsStore.isLoading">
       <p v-if="filmsStore.isLoading" class="visually-hidden" role="status">Loading films</p>
 
-      <v-row v-if="filmsStore.isLoading" class="film-grid" aria-hidden="true">
-        <v-col v-for="skeleton in 12" :key="skeleton" cols="6" sm="3" md="3" lg="2">
-          <article class="film-skeleton">
-            <div class="film-skeleton__image" />
-            <div class="film-skeleton__content">
-              <div class="film-skeleton__title" />
-              <div class="film-skeleton__description" />
-            </div>
-          </article>
-        </v-col>
-      </v-row>
+      <div v-if="filmsStore.isLoading" class="film-grid" aria-hidden="true">
+        <article v-for="skeleton in 12" :key="skeleton" class="film-skeleton">
+          <div class="film-skeleton__image" />
+          <div class="film-skeleton__content">
+            <div class="film-skeleton__title" />
+            <div class="film-skeleton__description" />
+          </div>
+        </article>
+      </div>
 
       <v-card
         v-else-if="filmsStore.requestError"
@@ -184,18 +182,24 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <v-row v-else class="film-grid">
-        <v-col v-for="film in filteredFilms" :key="film.id" cols="6" sm="3" md="3" lg="2">
-          <FilmCard :film="film" :orientation="orientation" />
-        </v-col>
-      </v-row>
+      <div v-else class="film-grid">
+        <FilmCard
+          v-for="film in filteredFilms"
+          :key="film.id"
+          :film="film"
+          :orientation="orientation"
+        />
+      </div>
     </section>
   </v-container>
 </template>
 
 <style scoped>
 .home-shell {
-  padding-block: 1.5rem 3rem;
+  width: min(calc(100% - 2rem), 80rem);
+  max-width: none;
+  margin-inline: auto;
+  padding: 1.5rem 0 3rem;
 }
 
 .catalog-search {
@@ -205,9 +209,9 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  margin: -1.5rem 0 1rem;
+  margin: -1.5rem 0 1.5rem;
   border-bottom: 1px solid rgba(var(--v-theme-on-background), 0.12);
-  padding: 0.75rem;
+  padding: 0.75rem 0;
   background: rgb(var(--v-theme-background));
   transition:
     padding 160ms ease,
@@ -233,7 +237,7 @@ onBeforeUnmount(() => {
 }
 
 .catalog-search__input::placeholder {
-  color: rgb(var(--v-theme-on-surface-variant));
+  color: rgb(var(--v-theme-on-surface));
   opacity: 1;
 }
 
@@ -313,7 +317,10 @@ h1 {
 }
 
 .film-grid {
-  row-gap: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 18rem));
+  justify-content: start;
+  gap: 1rem 0.75rem;
 }
 
 .catalog-unavailable {
@@ -356,6 +363,9 @@ h1 {
 }
 
 .film-skeleton {
+  width: 100%;
+  max-width: 18rem;
+  max-height: 36rem;
   overflow: hidden;
   border-radius: 0.5rem;
   background: rgb(var(--v-theme-surface));
@@ -404,7 +414,6 @@ h1 {
 @media (max-width: 480px) {
   .catalog-search {
     gap: 0.5rem;
-    padding-inline: 0.5rem;
   }
 
   .catalog-search__input {
@@ -413,6 +422,12 @@ h1 {
 
   .catalog-search__clear {
     min-width: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-shell {
+    width: calc(100% - 1rem);
   }
 }
 

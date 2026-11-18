@@ -57,7 +57,9 @@ beforeEach(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverMock)
   vi.stubGlobal('visualViewport', new EventTarget())
   componentStyles = document.createElement('style')
-  componentStyles.textContent = [extractStyle(FilmCardSource), extractStyle(HomeViewSource)].join('\n')
+  componentStyles.textContent = [extractStyle(FilmCardSource), extractStyle(HomeViewSource)].join(
+    '\n',
+  )
   document.head.append(componentStyles)
 })
 
@@ -102,8 +104,7 @@ describe('film catalog', () => {
           title: 'My Neighbor Totoro',
           image: 'https://example.test/totoro.jpg',
           movie_banner: 'https://example.test/totoro-banner.jpg',
-          description:
-            'Two sisters discover forest spirits. '.repeat(20),
+          description: 'Two sisters discover forest spirits. '.repeat(20),
         },
         { id: 'film-2', title: 'Only Yesterday' },
         { id: 'film-3', image: 'https://example.test/untitled.jpg' },
@@ -118,7 +119,9 @@ describe('film catalog', () => {
     const firstCard = cards.item(0)
     expect(firstCard?.textContent).toContain('My Neighbor Totoro')
     expect(firstCard?.textContent).toContain('Two sisters discover forest spirits.')
-    expect(firstCard?.querySelector('img')?.getAttribute('alt')).toBe('Poster for My Neighbor Totoro')
+    expect(firstCard?.querySelector('img')?.getAttribute('alt')).toBe(
+      'Poster for My Neighbor Totoro',
+    )
     expect(firstCard?.querySelector('img')?.getAttribute('src')).toBe(
       'https://example.test/totoro.jpg',
     )
@@ -239,9 +242,7 @@ describe('film catalog', () => {
     desktopToggle?.dispatchEvent(new MouseEvent('mouseenter'))
     await vi.waitFor(() => expect(isTooltipOpen(desktopToggle)).toBe(true))
     expect(
-      document
-        .getElementById(desktopToggle?.getAttribute('aria-describedby') ?? '')
-        ?.textContent,
+      document.getElementById(desktopToggle?.getAttribute('aria-describedby') ?? '')?.textContent,
     ).toContain('Switch between portrait and landscape card images')
     expect(
       document
@@ -253,7 +254,7 @@ describe('film catalog', () => {
     await vi.waitFor(() => expect(isTooltipOpen(desktopToggle)).toBe(false))
   })
 
-  it('uses two, four, and six-column responsive grid breakpoints', async () => {
+  it('left-aligns capped card tracks with matching toolbar and header boundaries', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(jsonResponse([{ id: 'film-1', title: 'Totoro' }])),
@@ -262,22 +263,62 @@ describe('film catalog', () => {
 
     await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
 
-    const column = root.querySelector('.film-grid .v-col')
-    expect(column?.classList.contains('v-col--cols-6')).toBe(true)
-    expect(column?.classList.contains('v-col--cols-sm-3')).toBe(true)
-    expect(column?.classList.contains('v-col--cols-md-3')).toBe(true)
-    expect(column?.classList.contains('v-col--cols-lg-2')).toBe(true)
+    const grid = root.querySelector('.film-grid')
+    const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
+    const shellRule = rules.find((rule) => rule.cssText.startsWith('.home-shell {'))
+    const toolbarRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search {'))
+    const gridRule = rules.find((rule) => rule.cssText.startsWith('.film-grid {'))
+    const filmCardRule = rules.find((rule) => rule.cssText.startsWith('.film-card {'))
+    const skeletonRule = rules.find((rule) => rule.cssText.startsWith('.film-skeleton {'))
+    const mobileGridRule = rules.find((rule) =>
+      rule.cssText.startsWith('@media (max-width: 480px)'),
+    )
 
-    const responsiveColumns = [
-      { width: 375, className: 'v-col--cols-6', count: 2 },
-      { width: 1024, className: 'v-col--cols-md-3', count: 4 },
-      { width: 1440, className: 'v-col--cols-lg-2', count: 6 },
-    ]
-    for (const breakpoint of responsiveColumns) {
-      const span = Number(breakpoint.className.split('-').pop())
-      expect(column?.classList.contains(breakpoint.className)).toBe(true)
-      expect(12 / span).toBe(breakpoint.count)
-    }
+    expect(grid?.querySelector('.film-card')?.parentElement).toBe(grid)
+    expect(grid?.querySelector('.v-col')).toBeNull()
+    expect(shellRule?.cssText).toContain('width: min(100% - 2rem, 80rem)')
+    expect(shellRule?.cssText).toContain('margin-inline: auto')
+    expect(toolbarRule?.cssText).toContain('padding: 0.75rem 0')
+    expect(gridRule?.cssText).toContain('display: grid')
+    expect(gridRule?.cssText).toContain('repeat(auto-fill')
+    expect(gridRule?.cssText).toContain('16rem')
+    expect(gridRule?.cssText).toContain('18rem')
+    expect(gridRule?.cssText).toContain('justify-content: start')
+    expect(gridRule?.cssText).toContain('gap: 1rem 0.75rem')
+    expect(filmCardRule?.cssText).toContain('max-width: 18rem')
+    expect(filmCardRule?.cssText).toContain('max-height: 36rem')
+    expect(skeletonRule?.cssText).toContain('max-width: 18rem')
+    expect(skeletonRule?.cssText).toContain('max-height: 36rem')
+    expect(mobileGridRule?.cssText).not.toContain('.film-grid {')
+  })
+
+  it('keeps a single search result left-aligned and within the card size limits', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse([
+          { id: 'film-1', title: 'My Neighbor Totoro' },
+          { id: 'film-2', title: 'Castle in the Sky' },
+        ]),
+      ),
+    )
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(2))
+
+    const input = root.querySelector<HTMLInputElement>('#film-search')
+    input!.value = 'totoro'
+    input!.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+
+    const grid = root.querySelector('.film-grid')
+    const rules = Array.from(componentStyles?.sheet?.cssRules ?? [])
+    const gridRule = rules.find((rule) => rule.cssText.startsWith('.film-grid {'))
+    const cardRule = rules.find((rule) => rule.cssText.startsWith('.film-card {'))
+    expect(grid?.querySelectorAll('.film-card')).toHaveLength(1)
+    expect(gridRule?.cssText).toContain('repeat(auto-fill')
+    expect(gridRule?.cssText).toContain('justify-content: start')
+    expect(cardRule?.cssText).toContain('max-width: 18rem')
+    expect(cardRule?.cssText).toContain('max-height: 36rem')
   })
 
   it('keeps film card dimensions, truncation, and reduced-motion behavior', () => {
@@ -571,6 +612,9 @@ describe('film catalog', () => {
     const compactRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search--compact'))
     const inputRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search__input {'))
     const clearRule = rules.find((rule) => rule.cssText.startsWith('.catalog-search__clear {'))
+    const placeholderRule = rules.find((rule) =>
+      rule.cssText.startsWith('.catalog-search__input::placeholder'),
+    )
     const focusRule = rules.find((rule) =>
       rule.cssText.startsWith('.catalog-search__input:focus-visible'),
     )
@@ -589,6 +633,8 @@ describe('film catalog', () => {
     expect(toolbarRule?.cssText).toContain('position: sticky')
     expect(toolbarRule?.cssText).toContain('top: 4rem')
     expect(inputRule?.cssText).toContain('min-height: 2.75rem')
+    expect(placeholderRule?.cssText).toContain('color: rgb(var(--v-theme-on-surface))')
+    expect(placeholderRule?.cssText).toContain('opacity: 1')
     expect(clearRule?.cssText).toContain('min-height: 2.75rem')
     expect(focusRule?.cssText).toContain('outline: 2px solid')
     expect(focusRule?.cssText).toContain('.catalog-search__clear:focus-visible')
