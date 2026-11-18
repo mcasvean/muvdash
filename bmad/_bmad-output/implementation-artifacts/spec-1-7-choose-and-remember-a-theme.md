@@ -2,7 +2,7 @@
 title: 'Choose and Remember a Theme'
 type: 'feature'
 created: '2026-11-18'
-status: 'review'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -66,7 +66,7 @@ deferred:
 - `frontend/src/stores/theme.ts` -- added theme state, `muvdash-theme` localStorage persistence, safe storage fallbacks, and Vuetify theme application.
 - `frontend/src/App.vue` -- added the responsive Light/Dark control, pressed and active styling, visible focus targets, and reduced-motion support.
 - `frontend/src/__tests__/app.spec.ts` -- added dark default, saved restoration, invalid fallback, route continuity, persistence, header placement, icon, and pressed-state coverage.
-- `bmad/_bmad-output/implementation-artifacts/sprint-status.yaml` -- moved Story 1.7 to review.
+- `bmad/_bmad-output/implementation-artifacts/sprint-status.yaml` -- marked Story 1.7 done after approval.
 - `bmad/_bmad-output/implementation-artifacts/spec-1-7-choose-and-remember-a-theme.md` -- recorded this implementation and verification.
 
 ## Verification
@@ -77,4 +77,8 @@ deferred:
 - `npm run test:unit -- --run` (from `frontend`) -- passed, 35 tests across 2 files.
 - `npm run build` (from `frontend`) -- passed Vue type-check and production build.
 - `git diff --check` (from repository root) -- passed.
+
+## Review Closure
+
+Approved by the product owner on 2026-11-18; Story 1.7 is complete.
 
