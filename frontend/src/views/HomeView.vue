@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import FilmCard from '../components/FilmCard.vue'
+import ContextualTooltip from '../components/ContextualTooltip.vue'
 import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
@@ -75,18 +76,55 @@ onBeforeUnmount(() => {
       >
         Clear search
       </button>
-      <v-btn
-        type="button"
-        class="card-orientation-toggle"
-        color="secondary"
-        variant="outlined"
-        prepend-icon="mdi-aspect-ratio"
-        :aria-label="`Card orientation: ${orientation}`"
-        :aria-pressed="orientation === 'landscape'"
-        @click="toggleOrientation"
-      >
-        {{ orientation }}
-      </v-btn>
+      <div class="card-orientation-desktop d-none d-md-flex">
+        <ContextualTooltip
+          message="Switch between portrait and landscape card images"
+          trigger-mode="hover"
+          v-slot="{ activatorProps }"
+        >
+          <v-btn
+            v-bind="activatorProps"
+            type="button"
+            class="card-orientation-toggle"
+            color="secondary"
+            variant="outlined"
+            prepend-icon="mdi-aspect-ratio"
+            :aria-label="`Card orientation: ${orientation}`"
+            :aria-pressed="orientation === 'landscape'"
+            @click="toggleOrientation"
+          >
+            {{ orientation }}
+          </v-btn>
+        </ContextualTooltip>
+      </div>
+      <div class="card-orientation-mobile d-inline-flex d-md-none">
+        <v-btn
+          type="button"
+          class="card-orientation-toggle"
+          color="secondary"
+          variant="outlined"
+          prepend-icon="mdi-aspect-ratio"
+          :aria-label="`Card orientation: ${orientation}`"
+          :aria-pressed="orientation === 'landscape'"
+          @click="toggleOrientation"
+        >
+          {{ orientation }}
+        </v-btn>
+        <ContextualTooltip
+          message="Switch between portrait and landscape card images"
+          trigger-mode="click"
+          v-slot="{ activatorProps }"
+        >
+          <v-btn
+            v-bind="activatorProps"
+            type="button"
+            class="contextual-help-trigger"
+            icon="mdi-information-outline"
+            variant="text"
+            aria-label="Help: card orientation"
+          />
+        </ContextualTooltip>
+      </div>
     </form>
 
     <h1>Studio Ghibli films</h1>
@@ -210,6 +248,22 @@ onBeforeUnmount(() => {
   min-width: 2.75rem;
   min-height: 2.75rem;
   flex: none;
+}
+
+.card-orientation-desktop,
+.card-orientation-mobile {
+  flex: none;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.card-orientation-mobile .contextual-help-trigger {
+  color: rgb(var(--v-theme-on-background));
+}
+
+.card-orientation-mobile .contextual-help-trigger:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: -4px;
 }
 
 .catalog-search__clear {

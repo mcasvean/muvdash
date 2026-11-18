@@ -50,7 +50,7 @@ This document organizes requirements from the Muvdash PRD, UX contract, architec
 - Isolate API access in a service or composable layer. Keep state limited to catalog/loading/error, selected film, search/view/modal/navigation UI, and theme preference.
 - Persist the selected theme in localStorage; use dark mode by default when no saved preference exists.
 - Preserve the architecture's focused test coverage for catalog loading/error states, search, details, theme persistence, and route navigation.
-- FR-9's target elements were not specified in the UX contract. Story 1.8 proposes guidance for the icon-only mobile menu and card-view control, using the tooltip interaction rules recorded in the UX memlog; confirm this scope before implementation.
+- Story 1.8's approved contextual-guidance targets are the mobile menu and card-view control, using the tooltip interaction rules recorded in the UX memlog. Do not add other targets without product-owner approval.
 
 ### UX Design Requirements
 
@@ -66,7 +66,7 @@ This document organizes requirements from the Muvdash PRD, UX contract, architec
 - UX-DR10: Use subtle transitions for search, card feedback, menu expansion, and modal appearance; reduce their intensity and duration when reduced motion is requested.
 - UX-DR11: Make all key interactions keyboard- and touch-accessible with visible focus states, comfortable touch targets, and no color-only meaning.
 - UX-DR12: Use friendly, clear, supportive copy for loading/error/empty states and concise informational Contact/About pages.
-- UX-DR13: Confirm which interface elements need tooltips or other explanatory aids, then specify their interaction behavior; this is not resolved by the current UX contract.
+- UX-DR13: Provide concise, accessible contextual guidance for the approved mobile-menu and card-view controls. Use hover/focus on the desktop card-view button and adjacent click/tap info icons on mobile/tablet; dismiss on pointer/focus exit, repeat info-icon activation, outside/app action, or route change.
 
 ### FR Coverage Map
 
@@ -78,7 +78,7 @@ FR5: Epic 1 - Show a distinct no-results state.
 FR6: Epic 2 - View a selected film's details and resolved related data.
 FR7: Epic 2 - Show the specified error modal when related data fails.
 FR8: Epic 1 - Navigate to the Contact and About routes.
-FR9: Epic 1 - Provide contextual guidance for the mobile menu and card-view control as proposed in Story 1.8.
+FR9: Epic 1 - Provide contextual guidance for the approved mobile menu and card-view control as specified in Story 1.8.
 
 ### UX-DR Coverage Map
 
@@ -431,12 +431,16 @@ So that I can understand their actions before using them.
 
 **Acceptance Criteria:**
 
-**Given** the mobile menu or card-view control is displayed,
-**When** the visitor activates its icon by click or tap,
+**Given** the card-view control is displayed on desktop,
+**When** the visitor hovers over or keyboard-focuses the button,
 **Then** a concise tooltip explains the control's action.
 
+**Given** a mobile-menu or card-view control is displayed on mobile or tablet,
+**When** the visitor views the control,
+**Then** a small information icon appears next to it, and activating the icon by click or tap opens a concise tooltip.
+
 **Given** a tooltip is open,
-**When** the visitor activates the same control, taps outside, selects a route, or performs another app action,
+**When** the pointer or keyboard focus leaves its desktop button, or the visitor activates the information icon again, taps or focuses outside, selects a route, or performs another app action,
 **Then** the tooltip closes.
 
 **Given** a tooltip-triggering control is used with a keyboard,
@@ -445,7 +449,7 @@ So that I can understand their actions before using them.
 
 **Given** a tooltip is visible,
 **When** the visitor changes route or the reduced-motion preference is active,
-**Then** the tooltip closes on the route change and any transition remains subtle.
+**Then** the tooltip closes on the route change and its transition is removed when reduced motion is requested.
 
 **Given** contextual guidance is implemented,
 **When** focused automated tests run,
@@ -454,7 +458,7 @@ So that I can understand their actions before using them.
 **Implementation order:** 8 overall; eighth story in Epic 1.
 **Technical dependencies:** Stories 1.4 and 1.6 for the mobile menu and card-view control.
 **Requirements:** FR9; NFR2, NFR3; UX-DR10, UX-DR11, UX-DR13.
-**Implementation constraints:** The mobile menu and card-view control are proposed guidance targets. Confirm these targets with the product owner before implementing this story; do not add other tooltip targets without approval.
+**Implementation constraints:** The approved guidance targets are the mobile menu and card-view control. On desktop (Vuetify `md` breakpoint and above), show the card-view tooltip on button hover and keyboard focus. On mobile and tablet, show an adjacent information icon whose click/tap toggles the tooltip for each visible target. Do not add other tooltip targets without product-owner approval.
 **Parallel implementation:** No. Implement stories one at a time as requested.
 
 ## Epic 2: Explore a Film's Details

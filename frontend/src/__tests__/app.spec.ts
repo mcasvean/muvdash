@@ -50,6 +50,7 @@ class LocalStorageMock implements Storage {
 
 beforeEach(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+  vi.stubGlobal('visualViewport', new EventTarget())
   Object.defineProperty(window, 'localStorage', {
     configurable: true,
     value: new LocalStorageMock(),
@@ -85,6 +86,16 @@ async function click(element: Element | null) {
   await flushPromises()
 }
 
+function isTooltipOpen(trigger: Element | null | undefined) {
+  const tooltipId = trigger?.getAttribute('aria-describedby')
+  return (
+    document
+      .getElementById(tooltipId ?? '')
+      ?.closest('.v-overlay')
+      ?.classList.contains('v-overlay--active') ?? false
+  )
+}
+
 describe('MuvDash application shell', () => {
   it('registers Vuetify and Pinia and renders Home through its router', async () => {
     await mountApplication()
@@ -113,9 +124,43 @@ describe('MuvDash application shell', () => {
     await mountApplication('/contact')
 
     const mobileNavigation = document.body.querySelector('#mobile-navigation')
+    const menuTrigger = container?.querySelector('button[aria-label="Open navigation menu"]')
+    const helpTrigger = container?.querySelector('button[aria-label="Help: navigation menu"]')
     expect(mobileNavigation?.getAttribute('aria-hidden')).toBe('true')
 
-    await click(container?.querySelector('button[aria-label="Open navigation menu"]') ?? null)
+    await click(helpTrigger ?? null)
+    const descriptionId = helpTrigger?.getAttribute('aria-describedby')
+    expect(descriptionId).toBeTruthy()
+    expect(document.getElementById(descriptionId ?? '')?.textContent).toContain(
+      'Opens the navigation menu',
+    )
+    expect(document.getElementById(descriptionId ?? '')?.getAttribute('role')).toBe('tooltip')
+    expect(isTooltipOpen(helpTrigger)).toBe(true)
+
+    await click(helpTrigger ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(false)
+
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    await click(helpTrigger ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(true)
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await flushPromises()
+    expect(isTooltipOpen(helpTrigger)).toBe(false)
+
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    await click(helpTrigger ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(true)
+    container?.querySelector('button[aria-label="Use light theme"]')?.focus()
+    await flushPromises()
+    expect(isTooltipOpen(helpTrigger)).toBe(false)
+
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    await click(helpTrigger ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(true)
+    await click(container?.querySelector('button[aria-label="Use light theme"]') ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(false)
+
+    await click(menuTrigger ?? null)
     const mobileNavigationLinks = document.body.querySelector('nav[aria-label="Mobile navigation"]')
     expect(mobileNavigationLinks?.textContent).toContain('Home')
     expect(mobileNavigationLinks?.textContent).toContain('Contact')
@@ -130,10 +175,24 @@ describe('MuvDash application shell', () => {
 
     await click(document.body.querySelector('.v-navigation-drawer__scrim'))
     expect(document.body.querySelector('.v-navigation-drawer--active')).toBeNull()
-
-    await click(container?.querySelector('button[aria-label="Open navigation menu"]') ?? null)
+    await click(menuTrigger ?? null)
     await click(document.body.querySelector('button[aria-label="Close navigation menu"]'))
     expect(document.body.querySelector('.v-navigation-drawer--active')).toBeNull()
+  })
+
+  it('closes contextual guidance when the route changes', async () => {
+    const instance = await mountApplication()
+
+    const helpTrigger = container?.querySelector('button[aria-label="Help: navigation menu"]')
+    await click(helpTrigger ?? null)
+    expect(isTooltipOpen(helpTrigger)).toBe(true)
+    await instance.router.push('/about')
+    await flushPromises()
+
+    expect(instance.router.currentRoute.value.name).toBe('about')
+    expect(container?.querySelector('h1')?.textContent).toBe('About')
+    expect(document.body.querySelector('.v-navigation-drawer--active')).toBeNull()
+    expect(isTooltipOpen(helpTrigger)).toBe(false)
   })
 
   it('closes the mobile navigation after selecting a route', async () => {
@@ -153,6 +212,7 @@ describe('MuvDash application shell', () => {
     const header = container?.querySelector('.app-header')
     const desktopNavigation = container?.querySelector('nav[aria-label="Primary navigation"]')
     const mobileTrigger = container?.querySelector('button[aria-label="Open navigation menu"]')
+    const mobileMenuActions = container?.querySelector('.mobile-menu-actions')
     const logo = container?.querySelector('a.brand')
     const activeHomeLink = container?.querySelector('.desktop-nav a[href="/"]')
 
@@ -160,7 +220,7 @@ describe('MuvDash application shell', () => {
     expect(window.getComputedStyle(header as HTMLElement).position).toBe('fixed')
     expect(desktopNavigation?.classList.contains('d-none')).toBe(true)
     expect(desktopNavigation?.classList.contains('d-sm-flex')).toBe(true)
-    expect(mobileTrigger?.classList.contains('d-sm-none')).toBe(true)
+    expect(mobileMenuActions?.classList.contains('d-sm-none')).toBe(true)
     expect(logo?.getAttribute('href')).toBe('/')
     expect(logo?.getAttribute('aria-label')).toBe('MuvDash home')
     expect(activeHomeLink?.getAttribute('aria-current')).toBe('page')

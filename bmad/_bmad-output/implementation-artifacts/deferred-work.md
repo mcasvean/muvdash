@@ -11,8 +11,8 @@
   status: open
   resolution: Define measurable pairs and states before implementing the theme story.
 - source_spec: `{project-root}/_bmad-output/implementation-artifacts/spec-1-1-scaffold-the-frontend-application.md`
-  summary: Reconcile FR-9 guidance targets and correct the stale story number in the requirements inventory.
-  evidence: The requirements inventory still references Story 1.7 after the guidance story was renumbered to Story 1.8, and the UX artifacts leave broader guidance targets unresolved.
-  owner: Product owner
-  status: open
-  resolution: Confirm Story 1.8's proposed targets before implementing that story.
+  summary: Reconcile the FR-9 guidance target scope and Story 1.8 documentation.
+  evidence: FR-9 target scope had not been confirmed in UX artifacts before Story 1.8 began.
+  owner: Product owner and developer
+  status: done
+  resolution: FR-9 now identifies Story 1.8; the product owner approved the mobile-menu and card-view tooltip targets on 2026-11-18, and no broader targets were added.

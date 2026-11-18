@@ -22,6 +22,16 @@ function extractStyle(source: string) {
   return source.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? ''
 }
 
+function isTooltipOpen(trigger: Element | null | undefined) {
+  const tooltipId = trigger?.getAttribute('aria-describedby')
+  return (
+    document
+      .getElementById(tooltipId ?? '')
+      ?.closest('.v-overlay')
+      ?.classList.contains('v-overlay--active') ?? false
+  )
+}
+
 function mountHome() {
   const instance = createMuvdashApp()
 
@@ -45,6 +55,7 @@ function jsonResponse(body: unknown, ok = true) {
 
 beforeEach(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverMock)
+  vi.stubGlobal('visualViewport', new EventTarget())
   componentStyles = document.createElement('style')
   componentStyles.textContent = [extractStyle(FilmCardSource), extractStyle(HomeViewSource)].join('\n')
   document.head.append(componentStyles)
@@ -141,26 +152,34 @@ describe('film catalog', () => {
 
     await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
 
-    const toggle = root.querySelector<HTMLButtonElement>(
-      'button[aria-label="Card orientation: portrait"]',
+    const mobileToggle = root.querySelector<HTMLButtonElement>(
+      '.card-orientation-mobile button[aria-label="Card orientation: portrait"]',
+    )
+    const mobileHelp = root.querySelector<HTMLButtonElement>(
+      '.card-orientation-mobile button[aria-label="Help: card orientation"]',
     )
     expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
       'https://example.test/totoro.jpg',
     )
-    expect(toggle?.getAttribute('aria-pressed')).toBe('false')
-    expect(toggle?.textContent).toContain('portrait')
-    toggle?.focus()
-    expect(document.activeElement).toBe(toggle)
+    expect(mobileToggle?.getAttribute('aria-pressed')).toBe('false')
+    expect(mobileToggle?.textContent).toContain('portrait')
+    expect(root.querySelector('.card-orientation-desktop')?.classList.contains('d-md-flex')).toBe(
+      true,
+    )
+    expect(root.querySelector('.card-orientation-mobile')?.classList.contains('d-md-none')).toBe(
+      true,
+    )
 
-    toggle?.click()
+    mobileToggle?.click()
     await vi.waitFor(() =>
       expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
         'https://example.test/totoro-banner.jpg',
       ),
     )
+    expect(mobileToggle?.getAttribute('aria-pressed')).toBe('true')
 
     const landscapeToggle = root.querySelector<HTMLButtonElement>(
-      'button[aria-label="Card orientation: landscape"]',
+      '.card-orientation-mobile button[aria-label="Card orientation: landscape"]',
     )
     expect(landscapeToggle?.getAttribute('aria-pressed')).toBe('true')
     expect(landscapeToggle?.textContent).toContain('landscape')
@@ -169,17 +188,69 @@ describe('film catalog', () => {
       'Banner for My Neighbor Totoro',
     )
 
+    mobileHelp?.click()
+    await vi.waitFor(() => expect(isTooltipOpen(mobileHelp)).toBe(true))
+    expect(isTooltipOpen(mobileHelp)).toBe(true)
+    const tooltipDescriptionId = mobileHelp?.getAttribute('aria-describedby')
+    expect(document.getElementById(tooltipDescriptionId ?? '')?.textContent).toContain(
+      'Switch between portrait and landscape card images',
+    )
+    expect(document.getElementById(tooltipDescriptionId ?? '')?.getAttribute('role')).toBe(
+      'tooltip',
+    )
+
+    mobileHelp?.click()
+    await vi.waitFor(() => expect(isTooltipOpen(mobileHelp)).toBe(false))
+
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    mobileHelp?.click()
+    await vi.waitFor(() => expect(isTooltipOpen(mobileHelp)).toBe(true))
     landscapeToggle?.click()
     await vi.waitFor(() =>
       expect(root.querySelector('.film-card img')?.getAttribute('src')).toBe(
         'https://example.test/totoro.jpg',
       ),
     )
+    expect(isTooltipOpen(mobileHelp)).toBe(false)
+
     expect(
       root
-        .querySelector<HTMLButtonElement>('button[aria-label="Card orientation: portrait"]')
+        .querySelector<HTMLButtonElement>(
+          '.card-orientation-mobile button[aria-label="Card orientation: portrait"]',
+        )
         ?.getAttribute('aria-pressed'),
     ).toBe('false')
+  })
+
+  it('shows card-view guidance on desktop button hover and focus', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(jsonResponse([{ id: 'film-1', title: 'Totoro' }])),
+    )
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
+
+    const desktopToggle = root.querySelector<HTMLButtonElement>(
+      '.card-orientation-desktop button[aria-label="Card orientation: portrait"]',
+    )
+    expect(desktopToggle).not.toBeNull()
+
+    desktopToggle?.dispatchEvent(new MouseEvent('mouseenter'))
+    await vi.waitFor(() => expect(isTooltipOpen(desktopToggle)).toBe(true))
+    expect(
+      document
+        .getElementById(desktopToggle?.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toContain('Switch between portrait and landscape card images')
+    expect(
+      document
+        .getElementById(desktopToggle?.getAttribute('aria-describedby') ?? '')
+        ?.getAttribute('role'),
+    ).toBe('tooltip')
+
+    desktopToggle?.dispatchEvent(new MouseEvent('mouseleave'))
+    await vi.waitFor(() => expect(isTooltipOpen(desktopToggle)).toBe(false))
   })
 
   it('uses two, four, and six-column responsive grid breakpoints', async () => {

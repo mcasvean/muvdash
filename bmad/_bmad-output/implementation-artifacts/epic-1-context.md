@@ -24,7 +24,7 @@ Deliver a usable, mobile-first Studio Ghibli catalog where visitors can browse a
 - Filter the loaded catalog immediately on the client by partial, case-insensitive matches in title, release date, producer, director, and description. Clearing search restores the fetched catalog without another request.
 - Provide Home, Contact, and About routes. Contact and About need only identify the current page in this release.
 - Design mobile-first for keyboard and touch use, with visible focus, comfortable targets, and meaning not conveyed by color alone. Meet WCAG 2.2 AA contrast requirements and reduce motion intensity and duration when requested.
-- Story 1.8's proposed tooltip targets are the mobile menu and card-view control. Product-owner confirmation of these targets is required before implementation; do not add other targets without approval.
+- Story 1.8's approved tooltip targets are the mobile menu and card-view control. On desktop (Vuetify `md` breakpoint and above), the card-view button shows its tooltip on hover/focus; on mobile and tablet, an adjacent information icon opens it on click/tap. Dismiss on pointer/focus exit, repeat info-icon activation, outside/app action, or route change. Do not add other targets without approval.
 
 ## Technical Decisions
 

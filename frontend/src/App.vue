@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useThemeStore, type ThemePreference } from './stores/theme'
+import ContextualTooltip from './components/ContextualTooltip.vue'
 
 const mobileNavigationOpen = ref(false)
 const themeStore = useThemeStore()
@@ -57,15 +58,30 @@ function selectTheme(preference: ThemePreference) {
             </button>
           </div>
 
-          <v-btn
-            class="mobile-menu-trigger d-sm-none"
-            icon="mdi-menu"
-            variant="text"
-            aria-label="Open navigation menu"
-            aria-controls="mobile-navigation"
-            :aria-expanded="mobileNavigationOpen"
-            @click="mobileNavigationOpen = true"
-          />
+          <div class="mobile-menu-actions d-sm-none">
+            <v-btn
+              class="mobile-menu-trigger"
+              icon="mdi-menu"
+              variant="text"
+              aria-label="Open navigation menu"
+              aria-controls="mobile-navigation"
+              :aria-expanded="mobileNavigationOpen"
+              @click="mobileNavigationOpen = true"
+            />
+            <ContextualTooltip
+              message="Opens the navigation menu"
+              trigger-mode="click"
+              v-slot="{ activatorProps }"
+            >
+              <v-btn
+                v-bind="activatorProps"
+                class="contextual-help-trigger"
+                icon="mdi-information-outline"
+                variant="text"
+                aria-label="Help: navigation menu"
+              />
+            </ContextualTooltip>
+          </div>
         </div>
       </div>
     </v-app-bar>
@@ -162,6 +178,29 @@ function selectTheme(preference: ThemePreference) {
   flex: none;
   align-items: center;
   gap: 0.5rem;
+}
+
+.mobile-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+@media (min-width: 600px) {
+  .mobile-menu-actions {
+    display: none;
+  }
+}
+
+.contextual-help-trigger {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  color: rgb(var(--v-theme-on-background));
+}
+
+.contextual-help-trigger:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: -4px;
 }
 
 .theme-control {
@@ -265,6 +304,26 @@ function selectTheme(preference: ThemePreference) {
     animation-duration: 0ms !important;
     transition-delay: 0ms !important;
     transition-duration: 0ms !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-content {
+    width: min(100% - 1rem, 80rem);
+  }
+
+  .header-actions {
+    gap: 0.25rem;
+  }
+
+  .theme-control__option {
+    gap: 0.0625rem;
+    padding-inline: 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .theme-control__option .v-icon {
+    font-size: 1rem;
   }
 }
 </style>
