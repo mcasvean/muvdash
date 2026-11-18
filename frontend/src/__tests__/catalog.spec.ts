@@ -216,18 +216,23 @@ describe('film catalog', () => {
       rule.cssText.startsWith('.film-card__image-frame--landscape'),
     )
     const descriptionRule = rules.find((rule) => rule.cssText.startsWith('.film-card__description'))
-    const reducedMotionRule = rules.find((rule) =>
+    const orientationFocusRule = rules.find((rule) =>
+      rule.cssText.includes('.card-orientation-toggle:focus-visible'),
+    )
+    const reducedMotionRules = rules.filter((rule) =>
       rule.cssText.startsWith('@media (prefers-reduced-motion: reduce)'),
     )
 
     expect(imageFrameRule?.cssText).toContain('aspect-ratio: 2 / 3')
     expect(landscapeImageFrameRule?.cssText).toContain('aspect-ratio: 16 / 9')
     expect(descriptionRule?.cssText).toContain('-webkit-line-clamp: 2')
-    expect(reducedMotionRule?.cssText).toContain('animation: none')
+    expect(
+      reducedMotionRules.some((rule) => rule.cssText.includes('transition-duration: 0ms')),
+    ).toBe(true)
+    expect(reducedMotionRules.some((rule) => rule.cssText.includes('animation: none'))).toBe(true)
     const toggleRule = rules.find((rule) => rule.cssText.startsWith('.card-orientation-toggle {'))
-    const focusRule = rules.find((rule) => rule.cssText.startsWith('.card-orientation-toggle:focus-visible'))
     expect(toggleRule?.cssText).toContain('min-height: 2.75rem')
-    expect(focusRule?.cssText).toContain('outline: 2px solid')
+    expect(orientationFocusRule?.cssText).toContain('outline: 2px solid')
   })
 
   it.each([

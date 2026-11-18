@@ -2,7 +2,7 @@
 title: 'Switch Card Image Orientation'
 type: 'feature'
 created: '2026-11-18'
-status: 'review'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
@@ -64,4 +64,8 @@ deferred: []
 - `npm run build` (from `frontend`) -- expected: Vue type-check and production build pass.
 - `git diff --check` (from repository root) -- expected: no whitespace errors.
 
-**Results:** All 25 focused catalog tests passed, the frontend type-check/build passed, and `git diff --check` passed.
+**Results:** All 31 frontend unit tests passed, the frontend type-check/build passed, and `git diff --check` passed.
+
+## Review Closure
+
+Review accepted on 2026-11-18; Story 1.6 is complete.

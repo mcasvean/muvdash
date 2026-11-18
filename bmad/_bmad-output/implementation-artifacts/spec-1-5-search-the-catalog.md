@@ -3,7 +3,7 @@ title: 'Search the Catalog'
 type: 'feature'
 created: '2026-11-18'
 baseline_revision: 'fb80906468a502ed2b628c9a40cfe8e1b6b4e86c'
-status: 'review'
+status: 'done'
 review_loop_iteration: 0
 followup_review_recommended: false
 context:
