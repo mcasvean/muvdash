@@ -271,7 +271,7 @@ describe('film catalog', () => {
     const filmCardRule = rules.find((rule) => rule.cssText.startsWith('.film-card {'))
     const skeletonRule = rules.find((rule) => rule.cssText.startsWith('.film-skeleton {'))
     const mobileGridRule = rules.find((rule) =>
-      rule.cssText.startsWith('@media (max-width: 480px)'),
+      rule.cssText.startsWith('@media (max-width: 600px)'),
     )
 
     expect(grid?.querySelector('.film-card')?.parentElement).toBe(grid)
@@ -281,15 +281,16 @@ describe('film catalog', () => {
     expect(toolbarRule?.cssText).toContain('padding: 0.75rem 0')
     expect(gridRule?.cssText).toContain('display: grid')
     expect(gridRule?.cssText).toContain('repeat(auto-fill')
-    expect(gridRule?.cssText).toContain('16rem')
-    expect(gridRule?.cssText).toContain('18rem')
+    expect(gridRule?.cssText).toContain('14rem')
+    expect(gridRule?.cssText).toContain('1fr')
     expect(gridRule?.cssText).toContain('justify-content: start')
     expect(gridRule?.cssText).toContain('gap: 1rem 0.75rem')
     expect(filmCardRule?.cssText).toContain('max-width: 18rem')
     expect(filmCardRule?.cssText).toContain('max-height: 36rem')
     expect(skeletonRule?.cssText).toContain('max-width: 18rem')
     expect(skeletonRule?.cssText).toContain('max-height: 36rem')
-    expect(mobileGridRule?.cssText).not.toContain('.film-grid {')
+    expect(mobileGridRule?.cssText).toContain('.film-grid {')
+    expect(mobileGridRule?.cssText).toContain('repeat(2, minmax(0, 1fr))')
   })
 
   it('keeps a single search result left-aligned and within the card size limits', async () => {
@@ -316,6 +317,7 @@ describe('film catalog', () => {
     const cardRule = rules.find((rule) => rule.cssText.startsWith('.film-card {'))
     expect(grid?.querySelectorAll('.film-card')).toHaveLength(1)
     expect(gridRule?.cssText).toContain('repeat(auto-fill')
+    expect(gridRule?.cssText).toContain('1fr')
     expect(gridRule?.cssText).toContain('justify-content: start')
     expect(cardRule?.cssText).toContain('max-width: 18rem')
     expect(cardRule?.cssText).toContain('max-height: 36rem')

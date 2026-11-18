@@ -24,7 +24,7 @@ deferred: []
 
 ## Boundaries & Constraints
 
-**Always:** Match partial, case-insensitive text in all five fields without another request. Clearing the query restores every fetched film. Keep search directly below the sticky app header while scrolling; compact it without overlap. Center the search and card-orientation controls together, aligned with the catalog edges and the header logo/theme-control boundaries. Flow search results from left to right with a small, consistent gap; when fewer cards match, leave unused grid space on the right. Cap each card at 18rem wide and 36rem tall. Give the search placeholder strong, readable contrast against its input background in both themes. Make input and clear action keyboard/touch accessible, with visible focus, comfortable targets, and understandable text. Respect reduced-motion preferences.
+**Always:** Match partial, case-insensitive text in all five fields without another request. Clearing the query restores every fetched film. Keep search directly below the sticky app header while scrolling; compact it without overlap. Center the search and card-orientation controls together, aligned with the catalog edges and the header logo/theme-control boundaries. On mobile, show two cards per row when at least two results are available. Flow search results from left to right with a small, consistent gap; when fewer cards match, leave unused grid space on the right. Cap each card at 18rem wide and 36rem tall. Give the search placeholder strong, readable contrast against its input background in both themes. Make input and clear action keyboard/touch accessible, with visible focus, comfortable targets, and understandable text. Respect reduced-motion preferences.
 
 **Never:** Change the catalog request flow, card content, or unavailable-catalog behavior. Do not implement Story 1.6 or other future stories.
 
@@ -54,6 +54,7 @@ deferred: []
 - Given the visitor scrolls Home, when the page moves, then search remains directly below the sticky header and compacts without overlap.
 - Given the catalog toolbar is displayed, when search and the card-orientation control are rendered, then they are centered together and align with the catalog's left and right edges and the header logo/theme-control boundaries.
 - Given a search returns one, two, or three films, when results are displayed, then cards flow from the left with a small consistent gap, unused grid space remains on the right, and no card exceeds 18rem in width or 36rem in height.
+- Given search results are displayed on mobile, when at least two films match, then two cards appear on each row.
 - Given the search field is displayed in either theme, when its placeholder is visible, then it has strong contrast against the input background and remains easy to read.
 - Given search is used by keyboard or touch, when input or clear controls are focused or activated, then they have visible focus, accessible names, comfortable targets, and state conveyed without color alone.
 - Given reduced motion is requested, when search compacts or results update, then transitions are subtle or reduced.

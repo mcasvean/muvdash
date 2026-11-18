@@ -170,7 +170,7 @@ So that I can browse the available films.
 **Given** the visitor views the catalog at mobile, tablet, or desktop widths,
 **When** the grid is rendered,
 **Then** the catalog container is centered with equal outer margins and responsive, readable card widths,
-**And** cards flow left to right with small, consistent horizontal and vertical gaps, leaving unused space on the right when the row is incomplete, and images are center-cropped as needed.
+**And** mobile displays two cards per row, and cards flow left to right with small, consistent horizontal and vertical gaps, leaving unused space on the right when the row is incomplete, and images are center-cropped as needed.
 
 **Given** the catalog is displayed below the app header,
 **When** the content is rendered,
@@ -339,6 +339,10 @@ So that I can quickly find a film I am interested in.
 **Given** a search returns one, two, or three films,
 **When** results are displayed,
 **Then** cards flow from the left with a small consistent gap, unused grid space remains on the right, and no card exceeds 18rem in width or 36rem in height.
+
+**Given** search results are displayed on mobile,
+**When** at least two films match,
+**Then** two cards appear on each row.
 
 **Given** the search field is displayed in either theme,
 **When** its placeholder is visible,

@@ -318,7 +318,7 @@ h1 {
 
 .film-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 18rem));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
   justify-content: start;
   gap: 1rem 0.75rem;
 }
@@ -422,6 +422,12 @@ h1 {
 
   .catalog-search__clear {
     min-width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .film-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
