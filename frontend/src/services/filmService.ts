@@ -7,6 +7,8 @@ export interface Film {
   producer?: string | null
   director?: string | null
   description?: string | null
+  running_time?: string | null
+  rt_score?: string | null
 }
 
 const FILMS_ENDPOINT = 'https://ghibliapi.vercel.app/films'
@@ -25,6 +27,8 @@ function isFilm(value: unknown): value is Film {
     'producer',
     'director',
     'description',
+    'running_time',
+    'rt_score',
   ]
 
   return (

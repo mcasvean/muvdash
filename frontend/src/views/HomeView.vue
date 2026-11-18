@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import FilmCard from '../components/FilmCard.vue'
 import ContextualTooltip from '../components/ContextualTooltip.vue'
+import type { Film } from '../services/filmService'
 import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
@@ -9,6 +10,30 @@ const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const isSearchCompact = ref(false)
 const orientation = ref<'portrait' | 'landscape'>('portrait')
+const selectedFilm = ref<Film | null>(null)
+const isDetailsOpen = ref(false)
+
+const filmDetails = computed(() => {
+  const film = selectedFilm.value
+  if (!film) return []
+
+  const fields = [
+    { label: 'Description', value: film.description },
+    { label: 'Director', value: film.director },
+    { label: 'Producer', value: film.producer },
+    { label: 'Release date', value: film.release_date },
+    {
+      label: 'Running time',
+      value: film.running_time ? `${film.running_time} minutes` : film.running_time,
+    },
+    { label: 'Score', value: film.rt_score ? `${film.rt_score}%` : film.rt_score },
+  ]
+
+  return fields.filter(
+    (field): field is { label: string; value: string } =>
+      typeof field.value === 'string' && field.value.trim().length > 0,
+  )
+})
 
 const filteredFilms = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -36,6 +61,15 @@ function clearSearch() {
 
 function toggleOrientation() {
   orientation.value = orientation.value === 'portrait' ? 'landscape' : 'portrait'
+}
+
+function showFilmDetails(film: Film) {
+  selectedFilm.value = film
+  isDetailsOpen.value = true
+}
+
+function closeFilmDetails() {
+  isDetailsOpen.value = false
 }
 
 onMounted(() => {
@@ -188,9 +222,56 @@ onBeforeUnmount(() => {
           :key="film.id"
           :film="film"
           :orientation="orientation"
+          @open-details="showFilmDetails"
         />
       </div>
     </section>
+
+    <v-dialog
+      v-model="isDetailsOpen"
+      class="film-details-dialog"
+      max-width="42rem"
+      scrollable
+      transition="dialog-transition"
+      @after-leave="selectedFilm = null"
+    >
+      <v-card
+        v-if="selectedFilm"
+        class="film-details"
+        rounded="lg"
+        elevation="3"
+        :aria-labelledby="selectedFilm.title ? 'film-details-title' : undefined"
+        :aria-label="selectedFilm.title ? undefined : 'Film details'"
+      >
+        <v-btn
+          class="film-details__close"
+          type="button"
+          icon="mdi-close"
+          variant="text"
+          aria-label="Close film details"
+          @click="closeFilmDetails"
+        />
+        <div v-if="selectedFilm.image" class="film-details__image-frame">
+          <v-img
+            :src="selectedFilm.image"
+            :alt="selectedFilm.title ? `Poster for ${selectedFilm.title}` : 'Film poster'"
+            class="film-details__image"
+            contain
+          />
+        </div>
+        <h2 v-if="selectedFilm.title" id="film-details-title" class="film-details__title">
+          {{ selectedFilm.title }}
+        </h2>
+        <v-card-text class="film-details__content">
+          <dl v-if="filmDetails.length" class="film-details__fields">
+            <div v-for="field in filmDetails" :key="field.label" class="film-details__field">
+              <dt>{{ field.label }}</dt>
+              <dd>{{ field.value }}</dd>
+            </div>
+          </dl>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -401,6 +482,70 @@ h1 {
   height: 2.25rem;
 }
 
+.film-details {
+  position: relative;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.film-details__close {
+  position: absolute;
+  z-index: 1;
+  top: 0.5rem;
+  right: 0.5rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  background: rgb(var(--v-theme-surface));
+}
+
+.film-details__close:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: 2px;
+}
+
+.film-details__image-frame {
+  max-height: 40vh;
+  overflow: hidden;
+  background: rgb(var(--v-theme-background));
+}
+
+.film-details__image {
+  max-height: 40vh;
+}
+
+.film-details__title {
+  margin: 0;
+  padding: 1rem 4rem 0.5rem 1rem;
+  color: rgb(var(--v-theme-secondary));
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.film-details__content {
+  padding: 0.5rem 1rem 1rem;
+}
+
+.film-details__fields {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.film-details__field dt {
+  color: rgb(var(--v-theme-secondary));
+  font-weight: 700;
+}
+
+.film-details__field dd {
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -437,6 +582,16 @@ h1 {
   }
 }
 
+@media (max-width: 600px) {
+  .film-details__title {
+    font-size: 1.05rem;
+  }
+
+  .film-details__content {
+    font-size: 0.9rem;
+  }
+}
+
 @keyframes skeleton-pulse {
   to {
     opacity: 0.55;
@@ -455,6 +610,10 @@ h1 {
 
   .card-orientation-toggle {
     transition-duration: 0ms;
+  }
+
+  :deep(.film-details-dialog .v-overlay__content) {
+    transition-duration: 0ms !important;
   }
 }
 </style>

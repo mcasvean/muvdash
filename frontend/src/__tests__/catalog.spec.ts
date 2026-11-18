@@ -137,6 +137,105 @@ describe('film catalog', () => {
     expect(root.textContent).not.toContain('film-1')
   })
 
+  it('opens the selected film details with available core fields in order and closes cleanly', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse([
+          {
+            id: 'film-1',
+            title: 'My Neighbor Totoro',
+            image: 'https://example.test/totoro.jpg',
+            description: 'Two sisters discover forest spirits.',
+            director: 'Hayao Miyazaki',
+            producer: 'Toru Hara',
+            release_date: '1988',
+            running_time: '86',
+            rt_score: '94',
+          },
+          { id: 'film-2', title: 'Only Yesterday' },
+        ]),
+      ),
+    )
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelectorAll('.film-card')).toHaveLength(2))
+
+    const detailsAction = root.querySelector<HTMLButtonElement>(
+      '.film-card__details-action[aria-label="View details for My Neighbor Totoro"]',
+    )
+    expect(detailsAction).not.toBeNull()
+    detailsAction?.click()
+
+    await vi.waitFor(() => expect(document.body.querySelector('.film-details')).not.toBeNull())
+
+    const dialog = document.body.querySelector('.film-details')
+    expect(dialog?.querySelector('h2#film-details-title')?.textContent).toContain(
+      'My Neighbor Totoro',
+    )
+    expect(dialog?.querySelector('img')?.getAttribute('src')).toBe(
+      'https://example.test/totoro.jpg',
+    )
+    expect(
+      Array.from(dialog?.querySelectorAll('.film-details__field dt') ?? []).map((label) =>
+        label.textContent?.trim(),
+      ),
+    ).toEqual(['Description', 'Director', 'Producer', 'Release date', 'Running time', 'Score'])
+    expect(
+      Array.from(dialog?.querySelectorAll('.film-details__field dd') ?? []).map((value) =>
+        value.textContent?.trim(),
+      ),
+    ).toEqual([
+      'Two sisters discover forest spirits.',
+      'Hayao Miyazaki',
+      'Toru Hara',
+      '1988',
+      '86 minutes',
+      '94%',
+    ])
+
+    const closeButton = dialog?.querySelector<HTMLButtonElement>(
+      'button[aria-label="Close film details"]',
+    )
+    expect(closeButton).not.toBeNull()
+    closeButton?.focus()
+    expect(document.activeElement).toBe(closeButton)
+    closeButton?.click()
+    await vi.waitFor(() => expect(document.body.querySelector('.film-details')).toBeNull())
+    expect(root.querySelector('.film-card')).not.toBeNull()
+  })
+
+  it('omits absent detail fields instead of rendering placeholders', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse([
+          {
+            id: 'film-1',
+            title: 'Only Yesterday',
+            image: 'https://example.test/only-yesterday.jpg',
+            director: 'Isao Takahata',
+          },
+        ]),
+      ),
+    )
+    const root = await mountHome()
+
+    await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
+    root.querySelector<HTMLButtonElement>('.film-card__details-action')?.click()
+    await vi.waitFor(() => expect(document.body.querySelector('.film-details')).not.toBeNull())
+
+    const dialog = document.body.querySelector('.film-details')
+    expect(
+      Array.from(dialog?.querySelectorAll('.film-details__field dt') ?? []).map((label) =>
+        label.textContent?.trim(),
+      ),
+    ).toEqual(['Director'])
+    expect(dialog?.textContent).not.toContain('film-1')
+    expect(dialog?.textContent).not.toContain('undefined')
+    expect(dialog?.textContent).not.toContain('null')
+  })
+
   it('switches between portrait posters and landscape banners', async () => {
     vi.stubGlobal(
       'fetch',

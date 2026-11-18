@@ -10,6 +10,10 @@ const props = defineProps<{
 const imageSource = computed(() =>
   props.orientation === 'landscape' ? props.film.movie_banner : props.film.image,
 )
+
+const emit = defineEmits<{
+  openDetails: [film: Film]
+}>()
 </script>
 
 <template>
@@ -33,6 +37,17 @@ const imageSource = computed(() =>
       <h2 v-if="film.title" class="film-card__title">{{ film.title }}</h2>
       <p v-if="film.description" class="film-card__description">{{ film.description }}</p>
     </v-card-text>
+    <v-card-actions class="film-card__actions">
+      <v-btn
+        class="film-card__details-action"
+        color="secondary"
+        variant="text"
+        :aria-label="`View details${film.title ? ` for ${film.title}` : ''}`"
+        @click="emit('openDetails', film)"
+      >
+        View details
+      </v-btn>
+    </v-card-actions>
   </v-card>
 </template>
 
@@ -93,5 +108,20 @@ const imageSource = computed(() =>
   font-size: 0.875rem;
   line-height: 1.4;
   -webkit-line-clamp: 2;
+}
+
+.film-card__actions {
+  min-height: 3.25rem;
+  padding: 0 0.5rem 0.5rem;
+}
+
+.film-card__details-action {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.film-card__details-action:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-secondary));
+  outline-offset: 2px;
 }
 </style>
