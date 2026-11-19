@@ -17,6 +17,29 @@ const hasRelatedDetailsError = ref(false)
 const relatedFilmData = ref<RelatedFilmData | null>(null)
 let relatedRequestVersion = 0
 
+const filmDetailsImage = computed(() => {
+  const film = selectedFilm.value
+  if (!film) return null
+
+  const banner = film.movie_banner?.trim()
+  if (banner) {
+    return {
+      src: banner,
+      alt: film.title ? `Banner for ${film.title}` : 'Film banner',
+    }
+  }
+
+  const poster = film.image?.trim()
+  if (poster) {
+    return {
+      src: poster,
+      alt: film.title ? `Poster for ${film.title}` : 'Film poster',
+    }
+  }
+
+  return null
+})
+
 const filmDetails = computed(() => {
   const film = selectedFilm.value
   if (!film) return []
@@ -319,10 +342,10 @@ onBeforeUnmount(() => {
           Gathering this film’s related information…
         </p>
         <template v-else>
-          <div v-if="selectedFilm.image" class="film-details__image-frame">
+          <div v-if="filmDetailsImage" class="film-details__image-frame">
             <v-img
-              :src="selectedFilm.image"
-              :alt="selectedFilm.title ? `Poster for ${selectedFilm.title}` : 'Film poster'"
+              :src="filmDetailsImage.src"
+              :alt="filmDetailsImage.alt"
               class="film-details__image"
               contain
             />
@@ -604,7 +627,9 @@ h1 {
 
 .film-details__image-frame {
   flex: 0 0 auto;
-  block-size: min(40dvh, 22rem);
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-block-size: min(40dvh, 22rem);
   min-block-size: 8rem;
   overflow: hidden;
   background: rgb(var(--v-theme-background));

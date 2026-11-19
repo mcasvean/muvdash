@@ -19,11 +19,11 @@ deferred: []
 
 **Problem:** Film cards show only a short summary, so visitors cannot inspect a film before choosing what to watch.
 
-**Approach:** Add an explicit, accessible details action to each film card. Open a centered, responsive dialog with the selected film's image, title, and available core details in the approved order.
+**Approach:** Add an explicit, accessible details action to each film card. Open a centered, responsive dialog with the selected film's landscape banner when available (poster fallback), title, and available core details in the approved order.
 
 ## Boundaries & Constraints
 
-**Always:** Show the full image and title first, then available description, director, producer, release date, running time, and score. Give the image a viewport-aware reserved area that does not shrink or crop when details are long. Keep the image and title outside the independently scrollable details region. Omit absent values without placeholders or raw identifiers/URLs. Keep the dialog centered, usable by keyboard and touch, and dismissible with its labeled close control or standard dialog dismissal. Honor reduced motion.
+**Always:** Prefer the landscape banner image, falling back to the poster when no banner is available. Show the full image and title first, then available description, director, producer, release date, running time, and score. Give the image a viewport-aware 16:9 reserved area that does not shrink or crop when details are long. Keep the image and title outside the independently scrollable details region. Omit absent values without placeholders or raw identifiers/URLs. Keep the dialog centered, usable by keyboard and touch, and dismissible with its labeled close control or standard dialog dismissal. Honor reduced motion.
 
 **Never:** Fetch relationship resources or display people, species, locations, or vehicles in this story; those belong to Story 2.2. Do not expose raw API IDs or URLs.
 
@@ -40,6 +40,7 @@ deferred: []
 ## Tasks & Acceptance
 
 - Given the catalog is displayed, when a visitor activates a film card's details action, then a centered dialog opens for that film with its image and title.
+- Given a film has a landscape banner, when its details modal opens, then the modal uses the banner and fits the full image without cropping; if no banner is available, it uses the poster when available.
 - Given the dialog is open, when details are displayed, then available description, director, producer, release date, running time, and score appear after the image and title in that order.
 - Given the film has long details or related information, when the modal is displayed, then the full image remains in its reserved viewport-aware area without being compressed or cropped, while only the details region scrolls.
 - Given requested fields are absent, when the dialog is rendered, then those fields are omitted without placeholders, raw IDs, or raw URLs.
@@ -61,6 +62,7 @@ Added an accessible “View details” action to each film card and a centered V
 - Follow-up focused catalog suite -- passed, 31 tests.
 - Follow-up `npm run build-only` and frontend Prettier check -- passed.
 - Browser check with Castle in the Sky and long related data -- the image area remained 352px tall, the full poster used `object-fit: contain`, details scrolled independently, and the modal fit within desktop and narrow browser viewports.
+- Landscape-image follow-up: focused catalog suite passed (31 tests), production build and frontend Prettier check passed. The modal selected the landscape banner; at a 468px-wide browser viewport its image frame was 376x212px (16:9), while long details scrolled independently.
 - Full unit suite -- 38 passed, 2 existing app-navigation tests failed in `src/__tests__/app.spec.ts`.
 - `npm run build` -- production build passed, but the combined command is blocked by the existing type error at `src/__tests__/app.spec.ts:153` (`Element.focus`).
 

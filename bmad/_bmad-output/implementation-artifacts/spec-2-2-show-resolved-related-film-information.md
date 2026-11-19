@@ -25,7 +25,7 @@ deferred: []
 
 ## Boundaries & Constraints
 
-**Always:** Request related data only when a film's details are opened. Resolve only referenced resources from the approved Studio Ghibli API origin and the four relationship categories. Display readable resource names and available descriptive fields; omit missing or unusable data, IDs, and URLs. Wait for all required requests before showing film details so failures never expose partial results. Keep the full film image in its reserved, non-shrinking area while long related information scrolls separately. The error modal contains only friendly copy and its accessible X close control, with no retry action. Preserve modal accessibility, responsive sizing, and reduced-motion behavior.
+**Always:** Request related data only when a film's details are opened. Resolve only referenced resources from the approved Studio Ghibli API origin and the four relationship categories. Display readable resource names and available descriptive fields; omit missing or unusable data, IDs, and URLs. Wait for all required requests before showing film details so failures never expose partial results. Prefer the landscape banner image, falling back to the poster when unavailable; keep the full image in its reserved, non-shrinking area while long related information scrolls separately. The error modal contains only friendly copy and its accessible X close control, with no retry action. Preserve modal accessibility, responsive sizing, and reduced-motion behavior.
 
 **Never:** Fetch relationship collections or endpoints not usable as a referenced resource. Do not fetch nested relationship URLs from the resource objects. Do not show raw IDs, raw URLs, partial related data, or a retry control in the error modal.
 

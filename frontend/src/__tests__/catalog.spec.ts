@@ -146,6 +146,7 @@ describe('film catalog', () => {
             id: 'film-1',
             title: 'My Neighbor Totoro',
             image: 'https://example.test/totoro.jpg',
+            movie_banner: 'https://example.test/totoro-banner.jpg',
             description: 'Two sisters discover forest spirits.',
             director: 'Hayao Miyazaki',
             producer: 'Toru Hara',
@@ -174,8 +175,9 @@ describe('film catalog', () => {
       'My Neighbor Totoro',
     )
     expect(dialog?.querySelector('img')?.getAttribute('src')).toBe(
-      'https://example.test/totoro.jpg',
+      'https://example.test/totoro-banner.jpg',
     )
+    expect(dialog?.querySelector('img')?.getAttribute('alt')).toBe('Banner for My Neighbor Totoro')
     expect(
       Array.from(dialog?.querySelectorAll('.film-details__field dt') ?? []).map((label) =>
         label.textContent?.trim(),
@@ -226,6 +228,10 @@ describe('film catalog', () => {
     await vi.waitFor(() => expect(document.body.querySelector('.film-details')).not.toBeNull())
 
     const dialog = document.body.querySelector('.film-details')
+    expect(dialog?.querySelector('img')?.getAttribute('src')).toBe(
+      'https://example.test/only-yesterday.jpg',
+    )
+    expect(dialog?.querySelector('img')?.getAttribute('alt')).toBe('Poster for Only Yesterday')
     expect(
       Array.from(dialog?.querySelectorAll('.film-details__field dt') ?? []).map((label) =>
         label.textContent?.trim(),

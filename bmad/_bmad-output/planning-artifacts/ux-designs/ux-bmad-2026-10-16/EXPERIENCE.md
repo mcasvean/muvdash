@@ -85,7 +85,7 @@ The modal is the primary deep-dive interaction. It should remain centered and re
 
 ### Rules
 
-- Give the film image a dedicated, viewport-aware display area that does not shrink when details are long. Fit the full image without cropping or distortion.
+- Prefer the film's landscape banner, falling back to its poster when unavailable. Give the image a dedicated, viewport-aware 16:9 display area that does not shrink when details are long; fit the full image without cropping or distortion.
 - Keep the image and title outside the scrolling details region; scroll long film and related information inside the remaining modal space.
 - Omit absent fields entirely; do not show placeholders.
 - Hide raw API IDs and raw URLs from the user.

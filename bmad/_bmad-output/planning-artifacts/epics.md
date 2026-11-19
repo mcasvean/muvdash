@@ -501,6 +501,10 @@ So that I can understand the film before choosing what to watch.
 **When** the visitor activates a film card's details action,
 **Then** a centered modal opens for that film with its image and title.
 
+**Given** a film has a landscape banner,
+**When** its details modal opens,
+**Then** the modal uses the banner and fits the full image without cropping; if no banner is available, it uses the poster image when available.
+
 **Given** the modal is open,
 **When** film details are displayed,
 **Then** available description, director, producer, release date, running time, and score appear after the image and title in that order.
