@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 13:43
-last_updated: 11-18-2026 16:14
+last_updated: 11-19-2026 09:58
 project: bmad
 project_key: NOKEY
 tracking_system: file-system
@@ -47,6 +47,6 @@ development_status:
   epic-1-retrospective: optional
 
   epic-2: in-progress
-  2-1-open-and-read-film-details: done
-  2-2-show-resolved-related-film-information: backlog
+  2-1-open-and-read-film-details: review
+  2-2-show-resolved-related-film-information: review
   epic-2-retrospective: optional

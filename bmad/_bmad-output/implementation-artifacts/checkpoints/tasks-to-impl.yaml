@@ -1,0 +1,108 @@
+metadata:
+  generated: "2026-11-18 16:22"
+  source_tasks: "bmad/_bmad-output/planning-artifacts/epics.md#Story 2.2 (acceptance-derived tasks)"
+  last_updated: "2026-11-18 16:22"
+summary:
+  total_tasks: 3
+  completed_tasks: 3
+  in_progress_tasks: 0
+  pending_tasks: 0
+  completion_percentage: 100.0
+tasks:
+  - task_id: "T2.2.1"
+    description: "Resolve and normalize usable related resources referenced by the selected film."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "frontend/src/services/filmService.ts"
+          changes:
+            - change_type: "modified"
+              description: "Added safe selected-film Ghibli resource URL validation, fetching, and display-data normalization."
+    verification:
+      build_passed: true
+      test_results:
+        command: "npm run test:unit -- --run src/__tests__/catalog.spec.ts"
+        passed: 31
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Requests are deduplicated and limited to usable references from the four supported categories."
+    upstream_trace:
+      plan_item: "Story 2.2"
+      requirements: ["FR-6"]
+      full_trace: "FR-6 -> Story 2.2 -> T2.2.1 -> frontend/src/services/filmService.ts"
+  - task_id: "T2.2.2"
+    description: "Display related information and replace details with an error-only modal on request failure."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "frontend/src/views/HomeView.vue"
+          changes:
+            - change_type: "modified"
+              description: "Added request/loading/error state, ordered related categories, and friendly error-only modal."
+    verification:
+      build_passed: true
+      test_results:
+        command: "npm run build-only"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Live browser check resolved related categories without displaying raw IDs or URLs."
+    upstream_trace:
+      plan_item: "Story 2.2"
+      requirements: ["FR-6", "FR-7"]
+      full_trace: "FR-6/FR-7 -> Story 2.2 -> T2.2.2 -> frontend/src/views/HomeView.vue"
+  - task_id: "T2.2.3"
+    description: "Add focused tests and update Story 2.2 implementation tracking."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "frontend/src/__tests__/catalog.spec.ts"
+          changes:
+            - change_type: "modified"
+              description: "Added focused relationship resolution, omission, and request-failure coverage."
+        - file: "bmad/_bmad-output/implementation-artifacts/spec-2-2-show-resolved-related-film-information.md"
+          changes:
+            - change_type: "created"
+              description: "Recorded Story 2.2 acceptance criteria and validation."
+        - file: "bmad/_bmad-output/implementation-artifacts/sprint-status.yaml"
+          changes:
+            - change_type: "modified"
+              description: "Moved Story 2.2 to review."
+    verification:
+      build_passed: true
+      test_results:
+        command: "npm run test:unit -- --run"
+        passed: 40
+        failed: 2
+        skipped: 0
+        failures:
+          - "Unchanged app-shell navigation test at app.spec.ts:113"
+          - "Unchanged app-shell navigation test at app.spec.ts:204"
+      notes: "Focused tests and production build pass; full-suite and type-check limitations are recorded in the story spec."
+    upstream_trace:
+      plan_item: "Story 2.2"
+      requirements: ["FR-6", "FR-7"]
+      full_trace: "FR-6/FR-7 -> Story 2.2 -> T2.2.3 -> frontend/src/__tests__/catalog.spec.ts"
+pending_tasks: []
+untracked_changes: []
+traceability_chain:
+  - chain_id: "STORY-2.2"
+    requirement: "FR-6, FR-7"
+    plan_phase: "Epic 2"
+    plan_item: "Story 2.2"
+    tasks: ["T2.2.1", "T2.2.2", "T2.2.3"]
+    files:
+      - "frontend/src/services/filmService.ts"
+      - "frontend/src/views/HomeView.vue"
+      - "frontend/src/__tests__/catalog.spec.ts"
+    status: "complete"
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "No separate plan.md or tasks*.json exists; task mapping follows the Epic story acceptance criteria."
+    - "The full suite has two unrelated app-shell route failures."
+    - "Type-check reports the existing Element.focus error in app.spec.ts:153."
+  blocking_issues: []

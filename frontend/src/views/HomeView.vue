@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FilmCard from '../components/FilmCard.vue'
 import ContextualTooltip from '../components/ContextualTooltip.vue'
-import type { Film } from '../services/filmService'
+import { fetchRelatedFilmData, type Film, type RelatedFilmData } from '../services/filmService'
 import { useFilmsStore } from '../stores/films'
 
 const filmsStore = useFilmsStore()
@@ -12,6 +12,10 @@ const isSearchCompact = ref(false)
 const orientation = ref<'portrait' | 'landscape'>('portrait')
 const selectedFilm = ref<Film | null>(null)
 const isDetailsOpen = ref(false)
+const isRelatedDetailsLoading = ref(false)
+const hasRelatedDetailsError = ref(false)
+const relatedFilmData = ref<RelatedFilmData | null>(null)
+let relatedRequestVersion = 0
 
 const filmDetails = computed(() => {
   const film = selectedFilm.value
@@ -33,6 +37,18 @@ const filmDetails = computed(() => {
     (field): field is { label: string; value: string } =>
       typeof field.value === 'string' && field.value.trim().length > 0,
   )
+})
+
+const relatedSections = computed(() => {
+  const data = relatedFilmData.value
+  if (!data) return []
+
+  return [
+    { key: 'people', title: 'People', items: data.people },
+    { key: 'species', title: 'Species', items: data.species },
+    { key: 'locations', title: 'Locations', items: data.locations },
+    { key: 'vehicles', title: 'Vehicles', items: data.vehicles },
+  ].filter((section) => section.items.length > 0)
 })
 
 const filteredFilms = computed(() => {
@@ -63,14 +79,47 @@ function toggleOrientation() {
   orientation.value = orientation.value === 'portrait' ? 'landscape' : 'portrait'
 }
 
-function showFilmDetails(film: Film) {
+async function showFilmDetails(film: Film) {
+  const requestVersion = ++relatedRequestVersion
   selectedFilm.value = film
+  relatedFilmData.value = null
+  hasRelatedDetailsError.value = false
+  isRelatedDetailsLoading.value = true
   isDetailsOpen.value = true
+
+  try {
+    const data = await fetchRelatedFilmData(film)
+    if (requestVersion === relatedRequestVersion) relatedFilmData.value = data
+  } catch {
+    if (requestVersion === relatedRequestVersion) {
+      relatedFilmData.value = null
+      hasRelatedDetailsError.value = true
+    }
+  } finally {
+    if (requestVersion === relatedRequestVersion) isRelatedDetailsLoading.value = false
+  }
 }
 
 function closeFilmDetails() {
   isDetailsOpen.value = false
 }
+
+function clearFilmDetails() {
+  if (isDetailsOpen.value) return
+
+  selectedFilm.value = null
+  relatedFilmData.value = null
+  isRelatedDetailsLoading.value = false
+  hasRelatedDetailsError.value = false
+}
+
+watch(
+  isDetailsOpen,
+  (isOpen) => {
+    if (!isOpen) relatedRequestVersion += 1
+  },
+  { flush: 'sync' },
+)
 
 onMounted(() => {
   updateSearchCompactState()
@@ -233,15 +282,27 @@ onBeforeUnmount(() => {
       max-width="42rem"
       scrollable
       transition="dialog-transition"
-      @after-leave="selectedFilm = null"
+      @after-leave="clearFilmDetails"
     >
       <v-card
         v-if="selectedFilm"
         class="film-details"
         rounded="lg"
         elevation="3"
-        :aria-labelledby="selectedFilm.title ? 'film-details-title' : undefined"
-        :aria-label="selectedFilm.title ? undefined : 'Film details'"
+        :aria-labelledby="
+          !hasRelatedDetailsError && !isRelatedDetailsLoading && selectedFilm.title
+            ? 'film-details-title'
+            : undefined
+        "
+        :aria-label="
+          hasRelatedDetailsError
+            ? 'Film details unavailable'
+            : isRelatedDetailsLoading
+              ? 'Loading film details'
+              : selectedFilm.title
+                ? undefined
+                : 'Film details'
+        "
       >
         <v-btn
           class="film-details__close"
@@ -251,25 +312,58 @@ onBeforeUnmount(() => {
           aria-label="Close film details"
           @click="closeFilmDetails"
         />
-        <div v-if="selectedFilm.image" class="film-details__image-frame">
-          <v-img
-            :src="selectedFilm.image"
-            :alt="selectedFilm.title ? `Poster for ${selectedFilm.title}` : 'Film poster'"
-            class="film-details__image"
-            contain
-          />
-        </div>
-        <h2 v-if="selectedFilm.title" id="film-details-title" class="film-details__title">
-          {{ selectedFilm.title }}
-        </h2>
-        <v-card-text class="film-details__content">
-          <dl v-if="filmDetails.length" class="film-details__fields">
-            <div v-for="field in filmDetails" :key="field.label" class="film-details__field">
-              <dt>{{ field.label }}</dt>
-              <dd>{{ field.value }}</dd>
-            </div>
-          </dl>
-        </v-card-text>
+        <p v-if="hasRelatedDetailsError" class="film-details__error-message" role="status">
+          Oops, the details are not available right now. Please try again later.
+        </p>
+        <p v-else-if="isRelatedDetailsLoading" class="film-details__loading-message" role="status">
+          Gathering this film’s related information…
+        </p>
+        <template v-else>
+          <div v-if="selectedFilm.image" class="film-details__image-frame">
+            <v-img
+              :src="selectedFilm.image"
+              :alt="selectedFilm.title ? `Poster for ${selectedFilm.title}` : 'Film poster'"
+              class="film-details__image"
+              contain
+            />
+          </div>
+          <h2 v-if="selectedFilm.title" id="film-details-title" class="film-details__title">
+            {{ selectedFilm.title }}
+          </h2>
+          <v-card-text class="film-details__content">
+            <dl v-if="filmDetails.length" class="film-details__fields">
+              <div v-for="field in filmDetails" :key="field.label" class="film-details__field">
+                <dt>{{ field.label }}</dt>
+                <dd>{{ field.value }}</dd>
+              </div>
+            </dl>
+            <section
+              v-for="section in relatedSections"
+              :key="section.key"
+              class="film-details__related-category"
+              :aria-label="section.title"
+            >
+              <h3>{{ section.title }}</h3>
+              <ul class="film-details__related-list">
+                <li
+                  v-for="(entity, index) in section.items"
+                  :key="`${section.key}-${index}`"
+                  class="film-details__related-entity"
+                >
+                  <h4 v-if="entity.name" class="film-details__related-name">
+                    {{ entity.name }}
+                  </h4>
+                  <dl v-if="entity.fields.length" class="film-details__related-fields">
+                    <div v-for="field in entity.fields" :key="field.label">
+                      <dt>{{ field.label }}</dt>
+                      <dd>{{ field.value }}</dd>
+                    </div>
+                  </dl>
+                </li>
+              </ul>
+            </section>
+          </v-card-text>
+        </template>
       </v-card>
     </v-dialog>
   </v-container>
@@ -484,8 +578,10 @@ h1 {
 
 .film-details {
   position: relative;
+  display: flex;
+  flex-direction: column;
   max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
+  overflow: hidden;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   background: rgb(var(--v-theme-surface));
   color: rgb(var(--v-theme-on-surface));
@@ -507,16 +603,20 @@ h1 {
 }
 
 .film-details__image-frame {
-  max-height: 40vh;
+  flex: 0 0 auto;
+  block-size: min(40dvh, 22rem);
+  min-block-size: 8rem;
   overflow: hidden;
   background: rgb(var(--v-theme-background));
 }
 
 .film-details__image {
-  max-height: 40vh;
+  width: 100%;
+  height: 100%;
 }
 
 .film-details__title {
+  flex: 0 0 auto;
   margin: 0;
   padding: 1rem 4rem 0.5rem 1rem;
   color: rgb(var(--v-theme-secondary));
@@ -527,7 +627,68 @@ h1 {
 }
 
 .film-details__content {
+  min-height: 0;
+  flex: 1 1 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.5rem 1rem 1rem;
+}
+
+.film-details__error-message,
+.film-details__loading-message {
+  margin: 0;
+  padding: 1.5rem 4rem 1.5rem 1.5rem;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.film-details__related-category {
+  margin-top: 1.25rem;
+}
+
+.film-details__related-category h3 {
+  margin: 0 0 0.65rem;
+  color: rgb(var(--v-theme-secondary));
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.film-details__related-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.film-details__related-entity {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.film-details__related-name {
+  margin: 0 0 0.4rem;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.film-details__related-fields {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.film-details__related-fields dt {
+  color: rgb(var(--v-theme-secondary));
+  font-weight: 700;
+}
+
+.film-details__related-fields dd {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
 }
 
 .film-details__fields {
@@ -588,6 +749,11 @@ h1 {
   }
 
   .film-details__content {
+    font-size: 0.9rem;
+  }
+
+  .film-details__error-message,
+  .film-details__loading-message {
     font-size: 0.9rem;
   }
 }

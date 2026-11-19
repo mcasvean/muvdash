@@ -505,6 +505,10 @@ So that I can understand the film before choosing what to watch.
 **When** film details are displayed,
 **Then** available description, director, producer, release date, running time, and score appear after the image and title in that order.
 
+**Given** the film has long details or related information,
+**When** its modal is displayed,
+**Then** the full image remains visible without being compressed or cropped, and only the text details scroll within the available modal height.
+
 **Given** one or more requested film fields are absent,
 **When** the modal is rendered,
 **Then** absent fields are omitted without placeholders, raw IDs, or raw URLs.

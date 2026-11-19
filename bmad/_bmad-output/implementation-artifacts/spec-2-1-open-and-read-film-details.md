@@ -2,9 +2,9 @@
 title: 'Open and Read Film Details'
 type: 'feature'
 created: '2026-11-18'
-status: 'done'
-review_loop_iteration: 0
-followup_review_recommended: false
+status: 'review'
+review_loop_iteration: 1
+followup_review_recommended: true
 context:
   - bmad/_bmad-output/planning-artifacts/epics.md
   - bmad/_bmad-output/planning-artifacts/ux-designs/ux-bmad-2026-10-16/EXPERIENCE.md
@@ -23,7 +23,7 @@ deferred: []
 
 ## Boundaries & Constraints
 
-**Always:** Show image and title first, then available description, director, producer, release date, running time, and score. Omit absent values without placeholders or raw identifiers/URLs. Keep the dialog centered, internally scrollable when needed, usable by keyboard and touch, and dismissible with its labeled close control or standard dialog dismissal. Honor reduced motion.
+**Always:** Show the full image and title first, then available description, director, producer, release date, running time, and score. Give the image a viewport-aware reserved area that does not shrink or crop when details are long. Keep the image and title outside the independently scrollable details region. Omit absent values without placeholders or raw identifiers/URLs. Keep the dialog centered, usable by keyboard and touch, and dismissible with its labeled close control or standard dialog dismissal. Honor reduced motion.
 
 **Never:** Fetch relationship resources or display people, species, locations, or vehicles in this story; those belong to Story 2.2. Do not expose raw API IDs or URLs.
 
@@ -41,6 +41,7 @@ deferred: []
 
 - Given the catalog is displayed, when a visitor activates a film card's details action, then a centered dialog opens for that film with its image and title.
 - Given the dialog is open, when details are displayed, then available description, director, producer, release date, running time, and score appear after the image and title in that order.
+- Given the film has long details or related information, when the modal is displayed, then the full image remains in its reserved viewport-aware area without being compressed or cropped, while only the details region scrolls.
 - Given requested fields are absent, when the dialog is rendered, then those fields are omitted without placeholders, raw IDs, or raw URLs.
 - Given the dialog is displayed on a phone or larger viewport, when its content is rendered, then it remains centered, uses the available viewport appropriately, and permits internal vertical scrolling when needed.
 - Given the visitor activates the labeled close control or dismisses the dialog, when it is open, then it closes and returns the visitor to the catalog context.
@@ -49,7 +50,7 @@ deferred: []
 
 ## Implementation Result
 
-Added an accessible “View details” action to each film card and a centered Vuetify dialog for the selected film. Core film fields are shown in the approved order with absent values omitted; the close control, responsive sizing, internal scrolling, reduced-motion handling, and keyboard focus behavior are covered.
+Added an accessible “View details” action to each film card and a centered Vuetify dialog for the selected film. Core film fields are shown in the approved order with absent values omitted. Follow-up layout work reserves a non-shrinking image area and makes long details scroll independently so the full image remains visible; close control, responsive sizing, reduced-motion handling, and keyboard focus behavior are preserved.
 
 ## Verification
 
@@ -57,9 +58,12 @@ Added an accessible “View details” action to each film card and a centered V
 - Browser check against live film data -- dialog opens with ordered details and closes back to the catalog.
 - `npm run build-only` (from `frontend`) -- passed.
 - `npx prettier --check src/components/FilmCard.vue src/services/filmService.ts src/views/HomeView.vue src/__tests__/catalog.spec.ts` (from `frontend`) -- passed.
+- Follow-up focused catalog suite -- passed, 31 tests.
+- Follow-up `npm run build-only` and frontend Prettier check -- passed.
+- Browser check with Castle in the Sky and long related data -- the image area remained 352px tall, the full poster used `object-fit: contain`, details scrolled independently, and the modal fit within desktop and narrow browser viewports.
 - Full unit suite -- 38 passed, 2 existing app-navigation tests failed in `src/__tests__/app.spec.ts`.
 - `npm run build` -- production build passed, but the combined command is blocked by the existing type error at `src/__tests__/app.spec.ts:153` (`Element.focus`).
 
-## Review Closure
+## Review Status
 
-Approved by the product owner on 2026-11-18; Story 2.1 is complete. Unrelated app-shell navigation and test typing issues remain unchanged.
+Story 2.1 was previously approved; a follow-up modal layout fix is ready for review. Unrelated app-shell navigation and test typing issues remain unchanged.

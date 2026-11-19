@@ -1,0 +1,90 @@
+batch_id: "B02"
+required_endpoints: []
+completed_tasks: ["T2.2.1", "T2.2.2", "T2.2.3"]
+blocked_tasks: []
+files_changed:
+  T2.2.1:
+    - file: "frontend/src/services/filmService.ts"
+      change_type: "modified"
+      description: "Validate, fetch, and normalize selected-film relationship resources."
+  T2.2.2:
+    - file: "frontend/src/views/HomeView.vue"
+      change_type: "modified"
+      description: "Resolve related data before rendering; show ordered related sections or an error-only modal."
+  T2.2.3:
+    - file: "frontend/src/__tests__/catalog.spec.ts"
+      change_type: "modified"
+      description: "Cover relationship resolution, request scoping, omission, loading, and failures."
+    - file: "bmad/_bmad-output/implementation-artifacts/spec-2-2-show-resolved-related-film-information.md"
+      change_type: "created"
+      description: "Record Story 2.2 intent, acceptance criteria, implementation, and verification."
+    - file: "bmad/_bmad-output/implementation-artifacts/sprint-status.yaml"
+      change_type: "modified"
+      description: "Track Story 2.2 as in review."
+upstream_artifacts_consumed:
+  T2.2.1:
+    - artifact: "bmad/_bmad-output/planning-artifacts/epics.md#Story 2.2"
+      used_for: "Story acceptance criteria and scope."
+    - artifact: "bmad/_bmad-output/planning-artifacts/prds/prd-bmad-2026-10-16/prd.md#FR-6, FR-7"
+      used_for: "On-demand relationship resolution and error-only modal behavior."
+    - artifact: "bmad/_bmad-output/api_structure.md"
+      used_for: "Relationship fields are URL arrays; collection URLs have no usable related entity."
+  T2.2.2:
+    - artifact: "bmad/_bmad-output/planning-artifacts/ux-designs/ux-bmad-2026-10-16/EXPERIENCE.md#Details modal"
+      used_for: "Related category display order and omission of IDs and URLs."
+    - artifact: "bmad/_bmad-output/implementation-artifacts/spec-2-1-open-and-read-film-details.md"
+      used_for: "Preserve the completed core details dialog and close behavior."
+evidence_mapping:
+  T2.2.1:
+    - upstream: "epics.md#Story 2.2: request only selected-film resources"
+      output: "frontend/src/services/filmService.ts"
+      evidence: "Focused catalog test verifies only unique, trusted, usable URLs are requested."
+  T2.2.2:
+    - upstream: "epics.md#Story 2.2: no details or partial related data on request failure"
+      output: "frontend/src/views/HomeView.vue"
+      evidence: "Failure test verifies loading hides film details and error state contains only copy and close."
+  T2.2.3:
+    - upstream: "epics.md#Story 2.2: resolve and omit related data"
+      output: "frontend/src/__tests__/catalog.spec.ts"
+      evidence: "31 focused catalog tests pass, including Story 2.2 cases."
+traceability:
+  - requirement: "FR-6"
+    plan_item: "Story 2.2"
+    task: "T2.2.1"
+    files: ["frontend/src/services/filmService.ts", "frontend/src/views/HomeView.vue"]
+    status: "completed"
+  - requirement: "FR-7"
+    plan_item: "Story 2.2"
+    task: "T2.2.2"
+    files: ["frontend/src/views/HomeView.vue", "frontend/src/__tests__/catalog.spec.ts"]
+    status: "completed"
+protocol_violation: false
+errors: []
+warnings:
+  - severity: "MEDIUM"
+    message: "No plan.md or task-breakdown artifact exists; task IDs and mappings were derived from the Epic 2.2 acceptance criteria."
+  - severity: "MEDIUM"
+    message: "Full suite has two failures in unchanged app-shell route tests; 40 tests pass."
+  - severity: "LOW"
+    message: "Type-check remains blocked by unchanged app.spec.ts:153 Element.focus typing; production build-only passes."
+test_results:
+  T2.2.1:
+    command: "npm run test:unit -- --run src/__tests__/catalog.spec.ts"
+    passed: 31
+    failed: 0
+    skipped: 0
+    failures: []
+  T2.2.2:
+    command: "npm run build-only"
+    passed: 1
+    failed: 0
+    skipped: 0
+    failures: []
+  T2.2.3:
+    command: "npm run test:unit -- --run"
+    passed: 40
+    failed: 2
+    skipped: 0
+    failures:
+      - "src/__tests__/app.spec.ts:113 navigates to Contact and About"
+      - "src/__tests__/app.spec.ts:204 closes mobile navigation after selecting a route"

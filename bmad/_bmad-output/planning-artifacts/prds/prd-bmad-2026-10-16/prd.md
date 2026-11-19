@@ -109,6 +109,7 @@ Visitors can open a centered details modal for a Film and view all available Fil
 **Consequences (testable):**
 
 - The modal presents the available fields from the Film record and its related Ghibli resources.
+- The film image remains fully visible in a reserved, viewport-aware area and is not compressed by long details; details scroll separately within the modal.
 - Related-resource requests are made only when needed to display the selected Film's details.
 - The modal has an X close control.
 

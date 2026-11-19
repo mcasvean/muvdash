@@ -236,6 +236,157 @@ describe('film catalog', () => {
     expect(dialog?.textContent).not.toContain('null')
   })
 
+  it('resolves usable selected-film relationships and omits unusable or untrusted data', async () => {
+    const personUrl = 'https://ghibliapi.vercel.app/people/person-1'
+    const speciesUrl = 'https://ghibliapi.vercel.app/species/species-1'
+    const emptySpeciesUrl = 'https://ghibliapi.vercel.app/species/species-empty'
+    const locationUrl = 'https://ghibliapi.vercel.app/locations/location-1'
+    const vehicleUrl = 'https://ghibliapi.vercel.app/vehicles/vehicle-1'
+    const untrustedUrl = 'https://example.test/vehicles/other'
+    const film = {
+      id: 'film-1',
+      title: 'Castle in the Sky',
+      description: 'A floating castle adventure.',
+      people: [personUrl, personUrl],
+      species: [speciesUrl, emptySpeciesUrl],
+      locations: [locationUrl, 'https://ghibliapi.vercel.app/locations/'],
+      vehicles: [vehicleUrl, untrustedUrl],
+    }
+    const responses = new Map<string, ReturnType<typeof jsonResponse>>([
+      ['https://ghibliapi.vercel.app/films', jsonResponse([film])],
+      [
+        personUrl,
+        jsonResponse({
+          id: 'person-1',
+          name: 'Sheeta',
+          age: '13',
+          gender: 'Female',
+          eye_color: 'Black',
+          hair_color: 'Brown',
+          url: personUrl,
+        }),
+      ],
+      [speciesUrl, jsonResponse({ id: 'species-1', name: 'Human', classification: 'Mammal' })],
+      [emptySpeciesUrl, jsonResponse({ id: 'species-empty', url: speciesUrl })],
+      [
+        locationUrl,
+        jsonResponse({
+          id: 'location-1',
+          name: 'Laputa',
+          climate: 'Continental',
+          terrain: 'Island',
+        }),
+      ],
+      [
+        vehicleUrl,
+        jsonResponse({
+          id: 'vehicle-1',
+          name: 'Tiger Moth',
+          description: 'A pirate airship.',
+          vehicle_class: 'Airship',
+        }),
+      ],
+    ])
+    const fetchMock = vi.fn((input: string | URL) =>
+      Promise.resolve(responses.get(String(input)) ?? jsonResponse({}, false)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    root.querySelector<HTMLButtonElement>('.film-card__details-action')?.click()
+    await vi.waitFor(() =>
+      expect(document.body.querySelector('.film-details__related-category')).not.toBeNull(),
+    )
+
+    const dialog = document.body.querySelector('.film-details')
+    expect(
+      Array.from(dialog?.querySelectorAll('.film-details__related-category h3') ?? []).map(
+        (heading) => heading.textContent?.trim(),
+      ),
+    ).toEqual(['People', 'Species', 'Locations', 'Vehicles'])
+    expect(dialog?.textContent).toContain('Castle in the Sky')
+    expect(dialog?.textContent).toContain('Sheeta')
+    expect(dialog?.textContent).toContain('13')
+    expect(dialog?.textContent).toContain('Female')
+    expect(dialog?.textContent).toContain('Human')
+    expect(dialog?.textContent).toContain('Mammal')
+    expect(dialog?.textContent).toContain('Laputa')
+    expect(dialog?.textContent).toContain('Continental')
+    expect(dialog?.textContent).toContain('Tiger Moth')
+    expect(dialog?.textContent).toContain('A pirate airship.')
+    expect(dialog?.textContent).not.toContain('location-1')
+    expect(dialog?.textContent).not.toContain('person-1')
+    expect(dialog?.textContent).not.toContain('vehicle-1')
+    expect(dialog?.textContent).not.toContain('species-empty')
+    expect(dialog?.textContent).not.toContain('https://')
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).sort()).toEqual(
+      [
+        'https://ghibliapi.vercel.app/films',
+        emptySpeciesUrl,
+        locationUrl,
+        personUrl,
+        speciesUrl,
+        vehicleUrl,
+      ].sort(),
+    )
+  })
+
+  it('shows only an error message and close control when a related request fails', async () => {
+    const personUrl = 'https://ghibliapi.vercel.app/people/person-1'
+    const missingSpeciesUrl = 'https://ghibliapi.vercel.app/species/species-missing'
+    let resolveFailedResponse!: (response: ReturnType<typeof jsonResponse>) => void
+    const failedResponse = new Promise<ReturnType<typeof jsonResponse>>((resolve) => {
+      resolveFailedResponse = resolve
+    })
+    const film = {
+      id: 'film-1',
+      title: 'Castle in the Sky',
+      description: 'A floating castle adventure.',
+      people: [personUrl],
+      species: [missingSpeciesUrl],
+    }
+    const responses = new Map<string, ReturnType<typeof jsonResponse>>([
+      ['https://ghibliapi.vercel.app/films', jsonResponse([film])],
+      [personUrl, jsonResponse({ id: 'person-1', name: 'Sheeta' })],
+    ])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: string | URL) => {
+        if (String(input) === missingSpeciesUrl) return failedResponse
+        return Promise.resolve(responses.get(String(input)) ?? jsonResponse({}, false))
+      }),
+    )
+
+    const root = await mountHome()
+    await vi.waitFor(() => expect(root.querySelector('.film-card')).not.toBeNull())
+    root.querySelector<HTMLButtonElement>('.film-card__details-action')?.click()
+    await vi.waitFor(() =>
+      expect(document.body.querySelector('.film-details__loading-message')).not.toBeNull(),
+    )
+    expect(document.body.querySelector('#film-details-title')).toBeNull()
+    expect(document.body.querySelector('.film-details__fields')).toBeNull()
+    resolveFailedResponse(jsonResponse({}, false))
+    await vi.waitFor(() =>
+      expect(document.body.querySelector('.film-details__error-message')).not.toBeNull(),
+    )
+
+    const dialog = document.body.querySelector('.film-details')
+    expect(dialog?.textContent).toContain('Oops, the details are not available right now.')
+    expect(dialog?.querySelector('#film-details-title')).toBeNull()
+    expect(dialog?.querySelector('.film-details__image-frame')).toBeNull()
+    expect(dialog?.querySelector('.film-details__fields')).toBeNull()
+    expect(dialog?.querySelector('.film-details__related-category')).toBeNull()
+    expect(dialog?.querySelector('button[aria-label="Close film details"]')).not.toBeNull()
+    expect(dialog?.querySelector('button[aria-label*="Retry"]')).toBeNull()
+
+    dialog?.querySelector<HTMLButtonElement>('button[aria-label="Close film details"]')?.click()
+    await vi.waitFor(() => expect(document.body.querySelector('.film-details')).toBeNull())
+    expect(root.querySelector('.film-card')).not.toBeNull()
+  })
+
   it('switches between portrait posters and landscape banners', async () => {
     vi.stubGlobal(
       'fetch',

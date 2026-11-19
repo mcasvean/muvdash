@@ -32,6 +32,7 @@ This addendum carries confirmed implementation constraints and provisional user-
 - **Search fields:** `title`, `release_date`, `producer`, `director`, and `description`.
 - Search is client-side, partial, and case-insensitive. Clearing the query restores the full fetched catalog.
 - The details modal presents all available fields from the film record and resolves related Ghibli data as needed.
+- The modal reserves a responsive area for the full, uncropped film image; long metadata and related information scroll separately without shrinking the image.
 - Every modal has an X close control.
 
 ## Loading and Error States
